@@ -62,9 +62,32 @@ export class SectionParser {
           continue;
         }
         const trimmed = line.trim();
-        // Skip metadata and pattern definition lines
-        if (trimmed.startsWith('@') || trimmed.startsWith('$')) {
+        // Skip metadata lines
+        if (trimmed.startsWith('@')) {
           i++;
+          continue;
+        }
+        // Skip pattern definition lines (both $n and the content line)
+        // Pattern definitions have content on the next line (chord sequences)
+        // Pattern references (in sections) are followed by -- or other section content
+        if (trimmed.startsWith('$')) {
+          i++; // Skip the $n line
+          // Check if next line is pattern content (chord sequence, not separator or modifier)
+          if (i < lines.length) {
+            const nextLine = lines[i];
+            if (nextLine) {
+              const nextTrimmed = nextLine.trim();
+              // Pattern content: not empty, not $ or @, not separator (--), not modifier (_)
+              const isPatternContent = nextTrimmed && 
+                                      !nextTrimmed.startsWith('$') && 
+                                      !nextTrimmed.startsWith('@') &&
+                                      !nextTrimmed.startsWith('--') &&
+                                      !nextTrimmed.startsWith('_');
+              if (isPatternContent) {
+                i++; // Skip the pattern content line
+              }
+            }
+          }
           continue;
         }
         // Found a potential section start

@@ -38,8 +38,15 @@ export class PatternParser {
       // Skip empty lines
       if (trimmedLine === '') continue;
 
-      // Skip non-pattern lines
-      if (!trimmedLine.startsWith('$')) continue;
+      // Stop when we hit a section (line that doesn't start with $ or @)
+      // Section names don't start with special characters
+      if (!trimmedLine.startsWith('$') && !trimmedLine.startsWith('@')) {
+        // We've hit a section, stop parsing patterns
+        break;
+      }
+
+      // Skip metadata lines (not patterns)
+      if (trimmedLine.startsWith('@')) continue;
 
       // Parse pattern line - format can be either:
       // $1 A;G;D  (inline)
@@ -74,8 +81,13 @@ export class PatternParser {
           const nextLine = lines[i + 1];
           if (nextLine) {
             const nextTrimmed = nextLine.trim();
-            // Next line should not be another pattern definition or empty
-            if (nextTrimmed && !nextTrimmed.startsWith('$') && !nextTrimmed.startsWith('@')) {
+            // Next line should be pattern content (not another pattern def, metadata, modifier, or separator)
+            const isPatternContent = nextTrimmed && 
+                                    !nextTrimmed.startsWith('$') && 
+                                    !nextTrimmed.startsWith('@') &&
+                                    !nextTrimmed.startsWith('_') &&
+                                    !nextTrimmed.startsWith('--');
+            if (isPatternContent) {
               patternContent = nextTrimmed;
               i++; // Skip the next line since we consumed it
             }
