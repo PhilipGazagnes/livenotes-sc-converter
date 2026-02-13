@@ -15,7 +15,7 @@ import { SongCodeError } from '../errors/SongCodeError';
 export interface SectionModifier {
   sc: string;
   json: null;
-  measures: number;
+  measures: number; // Calculated during Phase 2, included in final output
 }
 
 export interface SectionTime {

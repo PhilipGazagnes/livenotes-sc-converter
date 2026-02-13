@@ -80,6 +80,10 @@ export class SongCodeConverter {
     const patternDefinitions = this.patternParser.parse(cleanContent);
     const sections = this.sectionParser.parse(cleanContent);
 
+    // Preserve original global metadata before any section processing
+    const globalBpm = metadata.bpm;
+    const globalTime = metadata.time;
+
     // ============================================================
     // PHASE 1.5: Pattern Organization
     // ============================================================
@@ -106,18 +110,20 @@ export class SongCodeConverter {
     for (const section of sections) {
       if (section.before) {
         const result = this.patternTransformer.transform(section.before.sc);
+        const measures = this.measureCounter.count(result.json as any);
         section.before = {
           sc: section.before.sc,
           json: result.json as any,
-          measures: this.measureCounter.count(result.json as any),
+          measures,
         };
       }
       if (section.after) {
         const result = this.patternTransformer.transform(section.after.sc);
+        const measures = this.measureCounter.count(result.json as any);
         section.after = {
           sc: section.after.sc,
           json: result.json as any,
-          measures: this.measureCounter.count(result.json as any),
+          measures,
         };
       }
     }
@@ -244,11 +250,11 @@ export class SongCodeConverter {
     // ============================================================
     const prompter: LivenotesJSON['prompter'] = [];
 
-    // Add initial tempo item
-    if (metadata.bpm) {
+    // Add initial tempo item using preserved global BPM
+    if (globalBpm) {
       prompter.push(
         this.promptItemBuilder.buildTempoItem(
-          metadata.bpm,
+          globalBpm,
           [timeSignature.numerator, timeSignature.denominator]
         )
       );
@@ -336,6 +342,8 @@ export class SongCodeConverter {
         finalMeasures -= measures;
         if (beats > 0) finalMeasures -= 1;
       }
+      
+      // Add before/after measures
       if (section.before) {
         finalMeasures += section.before.measures;
       }
@@ -350,7 +358,7 @@ export class SongCodeConverter {
           id: patternId || null,
           repeat: section.repeat || 1,
           bpm: section.time?.bpm || null,
-          time: section.time ? {
+          time: section.time?.numerator !== undefined || section.time?.denominator !== undefined ? {
             numerator: section.time.numerator || timeSignature.numerator,
             denominator: section.time.denominator || timeSignature.denominator,
           } : null,
@@ -368,9 +376,9 @@ export class SongCodeConverter {
     const meta: MetaObject = {};
     if (metadata.name !== undefined) meta.name = metadata.name;
     if (metadata.artist !== undefined) meta.artist = metadata.artist;
-    if (metadata.bpm !== undefined) meta.bpm = metadata.bpm;
+    if (globalBpm !== undefined) meta.bpm = globalBpm;
     // Always include time signature (default to 4/4)
-    meta.time = metadata.time || timeSignature;
+    meta.time = globalTime || timeSignature;
     if (metadata.original !== undefined) meta.original = metadata.original;
     if (metadata.capo !== undefined) meta.capo = metadata.capo;
     if (metadata.pitch !== undefined) meta.pitch = metadata.pitch;

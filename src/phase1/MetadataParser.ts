@@ -67,7 +67,14 @@ export class MetadataParser {
       // Skip empty lines
       if (trimmedLine === '') continue;
 
-      // Skip non-metadata lines
+      // Stop parsing when we reach sections
+      // Sections start with a name (not @, $, or --)
+      if (!trimmedLine.startsWith('@') && !trimmedLine.startsWith('$') && !trimmedLine.startsWith('--')) {
+        // This is likely a section name, stop parsing global metadata
+        break;
+      }
+
+      // Skip non-metadata lines (pattern definitions, comments)
       if (!trimmedLine.startsWith('@')) continue;
 
       // Parse metadata line
