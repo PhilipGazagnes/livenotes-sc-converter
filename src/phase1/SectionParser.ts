@@ -67,26 +67,28 @@ export class SectionParser {
           i++;
           continue;
         }
-        // Skip pattern definition lines (both $n and the content line)
-        // Pattern definitions have content on the next line (chord sequences)
+        // Skip pattern definition lines (both $n and all content lines)
+        // Pattern definitions have content on following lines (chord sequences)
         // Pattern references (in sections) are followed by -- or other section content
         if (trimmed.startsWith('$')) {
           i++; // Skip the $n line
-          // Check if next line is pattern content (chord sequence, not separator or modifier)
-          if (i < lines.length) {
+          // Skip ALL pattern content lines until we hit a blank line or next definition
+          while (i < lines.length) {
             const nextLine = lines[i];
-            if (nextLine) {
-              const nextTrimmed = nextLine.trim();
-              // Pattern content: not empty, not $ or @, not separator (--), not modifier (_)
-              const isPatternContent = nextTrimmed && 
-                                      !nextTrimmed.startsWith('$') && 
-                                      !nextTrimmed.startsWith('@') &&
-                                      !nextTrimmed.startsWith('--') &&
-                                      !nextTrimmed.startsWith('_');
-              if (isPatternContent) {
-                i++; // Skip the pattern content line
-              }
+            if (!nextLine || nextLine.trim() === '') {
+              // Blank line marks end of pattern definition
+              break;
             }
+            const nextTrimmed = nextLine.trim();
+            // Stop if we hit another pattern definition, metadata, or section marker
+            if (nextTrimmed.startsWith('$') || 
+                nextTrimmed.startsWith('@') ||
+                nextTrimmed.startsWith('--') ||
+                nextTrimmed.startsWith('_')) {
+              break;
+            }
+            // This is pattern content, skip it
+            i++;
           }
           continue;
         }
@@ -298,23 +300,30 @@ export class SectionParser {
       continue;
     }
 
-    if (!separatorFound) {
-      throw new SongCodeError('E1.4.1', 'Missing lyric separator "--"', {
-        line: lineIndex,
-      });
-    }
-
-    // Parse lyrics (everything after --)
+    // If no separator found, it's an instrumental section (no lyrics)
+    // This is valid - separator is optional for instrumental sections
     const lyrics: string[] = [];
-    while (lineIndex < lines.length) {
-      const line = lines[lineIndex];
-      if (line !== undefined) {
-        const trimmed = line.trim();
-        if (trimmed !== '') {
-          lyrics.push(trimmed);
-        }
+    
+    if (!separatorFound) {
+      // No lyrics, empty array (will be handled as instrumental)
+      // Pattern should be set by now
+      if (!pattern) {
+        throw new SongCodeError('E1.4.1', 'Section must have a pattern', {
+          line: lineIndex,
+        });
       }
-      lineIndex++;
+    } else {
+      // Parse lyrics (everything after --)
+      while (lineIndex < lines.length) {
+        const line = lines[lineIndex];
+        if (line !== undefined) {
+          const trimmed = line.trim();
+          if (trimmed !== '') {
+            lyrics.push(trimmed);
+          }
+        }
+        lineIndex++;
+      }
     }
 
     // Build section object

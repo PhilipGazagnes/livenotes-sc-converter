@@ -116,8 +116,26 @@ export class PatternIdAssigner {
       processedLines.push(trimmedLine);
     }
 
-    // 3. Join lines with `;` separator (except for explicit `:`)
-    normalized = processedLines.join(';');
+    // 3. Join lines with `;` or `:` separator
+    // If a line is ":", keep it as-is; otherwise join with ";"
+    const parts: string[] = [];
+    for (let i = 0; i < processedLines.length; i++) {
+      const line = processedLines[i];
+      if (line === undefined) continue;
+      
+      if (line === ':') {
+        // Add ":" as separator (replace last ";" with ":")
+        if (parts.length > 0) {
+          parts.push(':');
+        }
+      } else {
+        if (parts.length > 0 && parts[parts.length - 1] !== ':') {
+          parts.push(';');
+        }
+        parts.push(line);
+      }
+    }
+    normalized = parts.join('');
 
     // 4. Collapse multiple `;` into single
     normalized = normalized.replace(/;+/g, ';');

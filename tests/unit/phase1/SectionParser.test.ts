@@ -343,23 +343,19 @@ Chorus lyrics _4`;
     });
 
     describe('validation errors', () => {
-      test('1.4.18: Missing lyric separator', () => {
-        // Arrange
+      test('1.4.18: Section with inline pattern and no separator (instrumental)', () => {
+        // Arrange - instrumental section with inline pattern
         const content = `Verse
-$1
-Lyrics _4`;
+A;G;D;A`;
 
-        // Act & Assert
-        expect(() => parser.parse(content)).toThrow(SongCodeError);
-        
-        try {
-          parser.parse(content);
-          fail('Should have thrown SongCodeError');
-        } catch (error) {
-          expect(error).toBeInstanceOf(SongCodeError);
-          expect((error as SongCodeError).code).toBe('E1.4.1');
-          expect((error as SongCodeError).message.toLowerCase()).toContain('separator');
-        }
+        // Act
+        const result = parser.parse(content);
+
+        // Assert - should parse successfully as instrumental section
+        expect(result).toHaveLength(1);
+        expect(result[0]!.name).toBe('Verse');
+        expect(result[0]!.pattern).toBe('A;G;D;A');
+        expect(result[0]!.lyrics).toEqual([]);
       });
 
       test('1.4.19: Empty section name', () => {
@@ -382,21 +378,19 @@ Lyrics _4`;
         }
       });
 
-      test('1.4.20: Section with only pattern (no separator)', () => {
-        // Arrange
+      test('1.4.20: Section with pattern reference and no separator (instrumental)', () => {
+        // Arrange - instrumental section with pattern reference
         const content = `Intro
 $1`;
 
-        // Act & Assert
-        expect(() => parser.parse(content)).toThrow(SongCodeError);
-        
-        try {
-          parser.parse(content);
-          fail('Should have thrown SongCodeError');
-        } catch (error) {
-          expect(error).toBeInstanceOf(SongCodeError);
-          expect((error as SongCodeError).code).toBe('E1.4.1');
-        }
+        // Act
+        const result = parser.parse(content);
+
+        // Assert - should parse successfully as instrumental section
+        expect(result).toHaveLength(1);
+        expect(result[0]!.name).toBe('Intro');
+        expect(result[0]!.pattern).toBe('$1');
+        expect(result[0]!.lyrics).toEqual([]);
       });
     });
   });

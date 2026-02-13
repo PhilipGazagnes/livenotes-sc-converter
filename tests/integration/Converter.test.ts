@@ -89,10 +89,10 @@ C;G;Am;F
       // Should have default metadata
       expect(result.meta).toBeDefined();
 
-      // Should have 1 pattern
+      // Should have 1 pattern with 4 measures
       expect(Object.keys(result.patterns)).toHaveLength(1);
       expect(result.patterns.A).toBeDefined();
-      expect(result.patterns.A!.measures).toBe(4);
+      expect(result.patterns.A!.json).toHaveLength(4);
 
       // Should have 1 section
       expect(result.sections).toHaveLength(1);

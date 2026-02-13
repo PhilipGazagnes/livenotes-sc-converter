@@ -270,6 +270,11 @@ export class SongCodeConverter {
       // Apply section modifiers
       measures = this.measureStacker.stack(measures, section, beforeMeasures, afterMeasures);
 
+      // Skip prompter generation for instrumental sections (no lyrics)
+      if (section.lyrics.length === 0) {
+        continue;
+      }
+
       // Pair lyrics with measures
       const lyricPairs = this.lyricPairer.pair(section.lyrics, measures.length);
 
@@ -281,16 +286,9 @@ export class SongCodeConverter {
         const item = this.promptItemBuilder.buildContentItem(
           lyricMeasures,
           lyricPair.text,
-          section.name
+          lyricPair.isInfo,
+          lyricPair.isMusician
         );
-
-        // Add special markers if present
-        if (lyricPair.isInfo && item.type === 'content') {
-          item.isInfo = true;
-        }
-        if (lyricPair.isMusician && item.type === 'content') {
-          item.isMusician = true;
-        }
 
         prompter.push(item);
       }

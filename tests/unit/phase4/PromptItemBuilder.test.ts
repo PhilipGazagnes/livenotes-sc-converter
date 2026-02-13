@@ -23,17 +23,16 @@ describe('PromptItemBuilder', () => {
   });
 
   describe('buildContentItem()', () => {
-    // Test 4.4.2: Build content item with chords and lyrics
+    // Test 4.4.2: Build content item with chords and lyrics (default style)
     it('should build content item with chords and lyrics', () => {
       const measures: Measure[] = [[['A', '']]];
       const lyric = 'First line';
-      const sectionName = 'verse';
       
-      const result = builder.buildContentItem(measures, lyric, sectionName);
+      const result = builder.buildContentItem(measures, lyric);
       
       expect(result.type).toBe('content');
       if (result.type === 'content') {
-        expect(result.style).toBe('verse');
+        expect(result.style).toBe('default');
         expect(result.chords).toEqual([{
           repeats: 1,
           pattern: [[['A', '']]],
@@ -42,18 +41,45 @@ describe('PromptItemBuilder', () => {
       }
     });
 
-    // Test 4.4.3: Build content item with no lyrics
+    // Test 4.4.3: Build content item with empty lyrics
     it('should build content item with empty lyrics', () => {
       const measures: Measure[] = [[['A', '']]];
       const lyric = '';
-      const sectionName = 'intro';
       
-      const result = builder.buildContentItem(measures, lyric, sectionName);
+      const result = builder.buildContentItem(measures, lyric);
       
       expect(result.type).toBe('content');
       if (result.type === 'content') {
-        expect(result.style).toBe('intro');
+        expect(result.style).toBe('default');
         expect(result.lyrics).toBe('');
+      }
+    });
+
+    // Test 4.4.3b: Build content item with info marker
+    it('should build content item with info style', () => {
+      const measures: Measure[] = [[['A', '']]];
+      const lyric = 'Solo';
+      
+      const result = builder.buildContentItem(measures, lyric, true, false);
+      
+      expect(result.type).toBe('content');
+      if (result.type === 'content') {
+        expect(result.style).toBe('info');
+        expect(result.lyrics).toBe('Solo');
+      }
+    });
+
+    // Test 4.4.3c: Build content item with musician marker
+    it('should build content item with musicianInfo style', () => {
+      const measures: Measure[] = [[['A', '']]];
+      const lyric = 'Watch drummer';
+      
+      const result = builder.buildContentItem(measures, lyric, false, true);
+      
+      expect(result.type).toBe('content');
+      if (result.type === 'content') {
+        expect(result.style).toBe('musicianInfo');
+        expect(result.lyrics).toBe('Watch drummer');
       }
     });
   });

@@ -74,24 +74,31 @@ export class PatternParser {
         );
       }
 
-      // If no inline content, look at next line
+      // If no inline content, look at next line(s) for multi-line pattern
       if (!patternContent || patternContent.trim() === '') {
-        // Check next line for pattern content
-        if (i + 1 < lines.length) {
+        const contentLines: string[] = [];
+        // Read all pattern content lines until we hit a blank line or next definition
+        while (i + 1 < lines.length) {
           const nextLine = lines[i + 1];
-          if (nextLine) {
-            const nextTrimmed = nextLine.trim();
-            // Next line should be pattern content (not another pattern def, metadata, modifier, or separator)
-            const isPatternContent = nextTrimmed && 
-                                    !nextTrimmed.startsWith('$') && 
-                                    !nextTrimmed.startsWith('@') &&
-                                    !nextTrimmed.startsWith('_') &&
-                                    !nextTrimmed.startsWith('--');
-            if (isPatternContent) {
-              patternContent = nextTrimmed;
-              i++; // Skip the next line since we consumed it
-            }
+          if (!nextLine || nextLine.trim() === '') {
+            // Blank line marks end of pattern
+            break;
           }
+          const nextTrimmed = nextLine.trim();
+          // Stop if we hit another pattern definition, metadata, section marker, modifier, or separator
+          if (nextTrimmed.startsWith('$') || 
+              nextTrimmed.startsWith('@') ||
+              nextTrimmed.startsWith('_') ||
+              nextTrimmed.startsWith('--')) {
+            break;
+          }
+          // This is pattern content
+          contentLines.push(nextTrimmed);
+          i++; // Skip this line since we consumed it
+        }
+        // Join all content lines with newlines to preserve structure (: line breaks, etc.)
+        if (contentLines.length > 0) {
+          patternContent = contentLines.join('\n');
         }
       }
 
