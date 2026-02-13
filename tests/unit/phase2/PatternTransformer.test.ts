@@ -77,7 +77,7 @@ describe('PatternTransformer', () => {
         const result = transformer.transform(input);
 
         // Assert
-        expect(result.json).toEqual([[['A', '']], ['%']]);
+        expect(result.json).toEqual([[['A', '']], [['%']]]);
       });
 
       test('2.2.6: Pattern with silence', () => {
@@ -88,7 +88,7 @@ describe('PatternTransformer', () => {
         const result = transformer.transform(input);
 
         // Assert
-        expect(result.json).toEqual([[['A', '']], ['_']]);
+        expect(result.json).toEqual([[['A', '']], [['_']]]);
       });
 
       test('2.2.7: Pattern with remover', () => {
@@ -99,7 +99,7 @@ describe('PatternTransformer', () => {
         const result = transformer.transform(input);
 
         // Assert
-        expect(result.json).toEqual([[['A', ''], '=']]);
+        expect(result.json).toEqual([[['A', ''], ['=']]]);
       });
 
       test('2.2.8: Pattern with multiple removers', () => {
@@ -110,7 +110,7 @@ describe('PatternTransformer', () => {
         const result = transformer.transform(input);
 
         // Assert
-        expect(result.json).toEqual([[['A', ''], '=', '=']]);
+        expect(result.json).toEqual([[['A', ''], ['='], ['=']]]);
       });
 
       test('2.2.9: Simple loop', () => {
@@ -175,15 +175,15 @@ describe('PatternTransformer', () => {
           'loopStart',
           [['A', '']],
           [['G', '']],
-          ['%'],
+          [['%']],
           [['A', '']],
           'loopEnd:3',
           'newLine',
           [['A', '']],
           [['G', '']],
-          ['%'],
+          [['%']],
           [['E', '']],
-          ['%']
+          [['%']]
         ]);
       });
 

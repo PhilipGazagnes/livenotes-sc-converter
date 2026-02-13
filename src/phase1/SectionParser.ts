@@ -80,11 +80,14 @@ export class SectionParser {
               break;
             }
             const nextTrimmed = nextLine.trim();
+            // Check if this is a modifier (starts with _ followed by letter, like _repeat)
+            // vs. silence symbol (just _ or patterns like _;_)
+            const isModifier = nextTrimmed.startsWith('_') && nextTrimmed.length > 1 && /^_[a-zA-Z]/.test(nextTrimmed);
             // Stop if we hit another pattern definition, metadata, or section marker
             if (nextTrimmed.startsWith('$') || 
                 nextTrimmed.startsWith('@') ||
                 nextTrimmed.startsWith('--') ||
-                nextTrimmed.startsWith('_')) {
+                isModifier) {
               break;
             }
             // This is pattern content, skip it

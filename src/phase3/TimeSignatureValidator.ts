@@ -27,7 +27,8 @@ export class TimeSignatureValidator {
     // Count removers first
     let removerCount = 0;
     for (const item of measure) {
-      if (item === '=') {
+      const isRemover = Array.isArray(item) && item.length === 1 && item[0] === '=';
+      if (isRemover) {
         removerCount++;
       }
     }

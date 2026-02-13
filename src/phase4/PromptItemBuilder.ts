@@ -109,10 +109,11 @@ export class PromptItemBuilder {
         const itemA = measureA[j];
         const itemB = measureB[j];
 
-        if (typeof itemA === 'string' || typeof itemB === 'string') {
-          if (itemA !== itemB) return false;
-        } else if (Array.isArray(itemA) && Array.isArray(itemB)) {
-          if (itemA[0] !== itemB[0] || itemA[1] !== itemB[1]) return false;
+        if (Array.isArray(itemA) && Array.isArray(itemB)) {
+          // Compare arrays (chords or symbols)
+          if (itemA.length !== itemB.length) return false;
+          if (itemA[0] !== itemB[0]) return false;
+          if (itemA.length === 2 && itemA[1] !== itemB[1]) return false;
         } else {
           return false;
         }
@@ -134,7 +135,10 @@ export class PromptItemBuilder {
       const newMeasure: Measure = [];
       
       for (const chord of measure) {
-        if (chord === '%') {
+        // Check if this is a repeat symbol
+        const isRepeatSymbol = Array.isArray(chord) && chord.length === 1 && chord[0] === '%';
+        
+        if (isRepeatSymbol) {
           // Repeat last chord/measure
           if (previousChord === null) {
             throw new SongCodeError(

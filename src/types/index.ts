@@ -78,9 +78,9 @@ export type Measure = ChordPosition[];
  */
 export type ChordPosition = 
   | Chord
-  | '%'
-  | '_'
-  | '=';
+  | ['%']
+  | ['_']
+  | ['='];
 
 /**
  * A chord with base and extension

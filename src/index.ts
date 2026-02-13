@@ -23,7 +23,6 @@ import { MeasureCounter } from './phase2/MeasureCounter';
 
 // Phase 3: Validation (Bricks 9-11)
 import { TimeSignatureValidator } from './phase3/TimeSignatureValidator';
-import { MeasureValidator } from './phase3/MeasureValidator';
 import { LyricTimingValidator } from './phase3/LyricTimingValidator';
 
 // Phase 3.5: Lyric Transformation (Brick 16)
@@ -54,7 +53,6 @@ export class SongCodeConverter {
   
   // Phase 3: Validation
   private timeSignatureValidator = new TimeSignatureValidator();
-  private measureValidator = new MeasureValidator();
   private lyricTimingValidator = new LyricTimingValidator();
   
   // Phase 3.5: Lyric Transformation
@@ -166,48 +164,69 @@ export class SongCodeConverter {
       }
     }
 
-    // Validate measure counts match lyrics
+    // ============================================================
+    // PHASE 3: Validation
+    // ============================================================
+    
+    // Step 3.2: Calculate Section Measure Counts
+    // Calculate total measures for each section considering all modifiers
+    // and store in section objects for use in Step 3.3
+    const sectionMeasures = new Map<string, number>();
+    
     for (const section of sections) {
-      // Skip validation for instrumental sections (no lyrics)
-      if (section.lyrics.length === 0) {
-        continue;
-      }
-      
       const patternId = sectionPatternIds.get(section.name);
       const pattern = patternId ? patterns[patternId] : undefined;
       const patternMeasures = pattern?.measures || 0;
       const beforeMeasures = section.before?.measures || 0;
       const afterMeasures = section.after?.measures || 0;
       
-      // Calculate total lyric measures
-      let lyricMeasures = 0;
-      for (const lyric of section.lyrics) {
-        const match = lyric.match(/_(\d+)$/);
-        if (match && match[1]) {
-          lyricMeasures += parseInt(match[1], 10);
+      // Calculate final measures following spec algorithm:
+      // section_measures = before + (pattern * repeat - cutStart - cutEnd) + after
+      let finalMeasures = patternMeasures;
+      
+      // Apply _repeat modifier
+      if (section.repeat) {
+        finalMeasures *= section.repeat;
+      }
+      
+      // Apply _cutStart modifier
+      if (section.cutStart) {
+        const [measures, beats] = section.cutStart;
+        finalMeasures -= measures;
+        if (beats > 0) {
+          finalMeasures -= 1;
         }
       }
-
-      this.measureValidator.validate(
-        section,
-        patternMeasures,
-        lyricMeasures,
-        beforeMeasures,
-        afterMeasures
-      );
+      
+      // Apply _cutEnd modifier
+      if (section.cutEnd) {
+        const [measures, beats] = section.cutEnd;
+        finalMeasures -= measures;
+        if (beats > 0) {
+          finalMeasures -= 1;
+        }
+      }
+      
+      // Add _before measures
+      finalMeasures += beforeMeasures;
+      
+      // Add _after measures
+      finalMeasures += afterMeasures;
+      
+      // Store calculated measures
+      sectionMeasures.set(section.name, finalMeasures);
     }
-
-    // Validate lyric timing markers
+    
+    // Step 3.3: Validate Lyric Timing
+    // Validate that lyric measure counts match section's calculated measures
     for (const section of sections) {
       // Skip validation for instrumental sections (no lyrics)
       if (section.lyrics.length === 0) {
         continue;
       }
       
-      const patternId = sectionPatternIds.get(section.name);
-      const pattern = patternId ? patterns[patternId] : undefined;
-      const measureCount = pattern?.measures || 0;
-      this.lyricTimingValidator.validate(section.lyrics, measureCount);
+      const totalMeasures = sectionMeasures.get(section.name) || 0;
+      this.lyricTimingValidator.validate(section.lyrics, totalMeasures);
     }
 
     // ============================================================

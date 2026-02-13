@@ -86,9 +86,12 @@ export class PatternParser {
           }
           const nextTrimmed = nextLine.trim();
           // Stop if we hit another pattern definition, metadata, section marker, modifier, or separator
+          // Note: Modifiers like _repeat, _before, _after, _cutStart, _cutEnd start with _ followed by letter
+          // But silence symbol "_" alone or in patterns like "_;_" should not stop parsing
+          const isModifier = nextTrimmed.startsWith('_') && nextTrimmed.length > 1 && /^_[a-zA-Z]/.test(nextTrimmed);
           if (nextTrimmed.startsWith('$') || 
               nextTrimmed.startsWith('@') ||
-              nextTrimmed.startsWith('_') ||
+              isModifier ||
               nextTrimmed.startsWith('--')) {
             break;
           }

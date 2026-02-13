@@ -13,7 +13,7 @@
 import { SongCodeError } from '../errors/SongCodeError';
 import { ChordParser } from './ChordParser';
 
-export type PatternItem = string | Array<[string, string] | string>;
+export type PatternItem = string | Array<[string, string] | [string] | string>;
 export type PatternJSON = Array<PatternItem> | null;
 
 export interface TransformResult {
@@ -172,18 +172,18 @@ export class PatternTransformer {
 
     // Check for special single-character measures
     if (content === '%') {
-      return { measure: ['%'], endIndex: i };
+      return { measure: [['%']], endIndex: i };
     }
     if (content === '_') {
-      return { measure: ['_'], endIndex: i };
+      return { measure: [['_']], endIndex: i };
     }
     if (content === '-') {
-      return { measure: ['-'], endIndex: i };
+      return { measure: [['-']], endIndex: i };
     }
 
     // Parse chords and removers
     const items = content.split(/\s+/).filter(s => s !== '');
-    const measure: Array<[string, string] | string> = [];
+    const measure: Array<[string, string] | [string] | string> = [];
     let hasChord = false;
 
     for (let j = 0; j < items.length; j++) {
@@ -195,7 +195,13 @@ export class PatternTransformer {
         if (!hasChord) {
           throw new SongCodeError('E2.1.2', 'Remover "=" must be at end of measure after chords');
         }
-        measure.push('=');
+        measure.push(['=']);
+      } else if (item === '%') {
+        // Repeat symbol in multi-item measure
+        measure.push(['%']);
+      } else if (item === '_') {
+        // Silence symbol in multi-item measure
+        measure.push(['_']);
       } else {
         // Parse as chord
         const chord = this.chordParser.parse(item);

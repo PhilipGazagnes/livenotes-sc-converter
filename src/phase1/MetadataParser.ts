@@ -23,25 +23,25 @@ export class MetadataParser {
     'end',
   ];
 
-  // Valid chord roots
+  // Valid chord roots for @original key
   private static readonly VALID_CHORD_ROOTS = [
-    'A',
-    'A#',
-    'Ab',
-    'B',
-    'Bb',
-    'C',
-    'C#',
-    'D',
-    'D#',
-    'Db',
-    'E',
-    'Eb',
-    'F',
-    'F#',
-    'G',
-    'G#',
-    'Gb',
+    'A', 'Am',
+    'A#', 'A#m',
+    'Ab', 'Abm',
+    'B', 'Bm',
+    'Bb', 'Bbm',
+    'C', 'Cm',
+    'C#', 'C#m',
+    'D', 'Dm',
+    'D#', 'D#m',
+    'Db', 'Dbm',
+    'E', 'Em',
+    'Eb', 'Ebm',
+    'F', 'Fm',
+    'F#', 'F#m',
+    'G', 'Gm',
+    'G#', 'G#m',
+    'Gb', 'Gbm',
   ];
 
   /**
