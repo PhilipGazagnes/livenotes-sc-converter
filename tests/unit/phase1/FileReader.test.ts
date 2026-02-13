@@ -6,6 +6,7 @@
  */
 
 import { FileReader } from '../../../src/phase1/FileReader';
+import { SongCodeError } from '../../../src/errors/SongCodeError';
 
 describe('FileReader', () => {
   let reader: FileReader;
@@ -81,8 +82,32 @@ describe('FileReader', () => {
         const content = 'Test\0content';
 
         // Act & Assert
-        expect(() => reader.read(content)).toThrow();
-        // TODO: Check for specific error code E0.2
+        expect(() => reader.read(content)).toThrow(SongCodeError);
+        
+        try {
+          reader.read(content);
+          fail('Should have thrown SongCodeError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(SongCodeError);
+          expect((error as SongCodeError).code).toBe('E0.2');
+          expect((error as SongCodeError).message).toContain('UTF-8');
+        }
+      });
+
+      test('1.1.2: Invalid UTF-8 encoding (surrogate pairs)', () => {
+        // Arrange - Lone surrogate pair (invalid UTF-8)
+        const content = 'Test\uD800content';
+
+        // Act & Assert
+        expect(() => reader.read(content)).toThrow(SongCodeError);
+        
+        try {
+          reader.read(content);
+          fail('Should have thrown SongCodeError');
+        } catch (error) {
+          expect(error).toBeInstanceOf(SongCodeError);
+          expect((error as SongCodeError).code).toBe('E0.2');
+        }
       });
     });
   });
