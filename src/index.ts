@@ -352,12 +352,8 @@ export class SongCodeConverter {
     if (metadata.name !== undefined) meta.name = metadata.name;
     if (metadata.artist !== undefined) meta.artist = metadata.artist;
     if (metadata.bpm !== undefined) meta.bpm = metadata.bpm;
-    if (metadata.time) {
-      meta.time = {
-        numerator: metadata.time.numerator,
-        denominator: metadata.time.denominator,
-      };
-    }
+    // Always include time signature (default to 4/4)
+    meta.time = metadata.time || timeSignature;
     if (metadata.original !== undefined) meta.original = metadata.original;
     if (metadata.capo !== undefined) meta.capo = metadata.capo;
     if (metadata.pitch !== undefined) meta.pitch = metadata.pitch;

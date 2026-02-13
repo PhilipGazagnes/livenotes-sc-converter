@@ -41,7 +41,11 @@ export class PatternParser {
       // Skip non-pattern lines
       if (!trimmedLine.startsWith('$')) continue;
 
-      // Parse pattern line
+      // Parse pattern line - format can be either:
+      // $1 A;G;D  (inline)
+      // or
+      // $1
+      // A;G;D    (next line)
       const match = trimmedLine.match(/^\$(\S+)(?:\s+(.+))?$/);
       
       if (!match) {
@@ -53,7 +57,7 @@ export class PatternParser {
       }
 
       const idStr = match[1];
-      const patternContent = match[2];
+      let patternContent = match[2]; // May be undefined
 
       if (!idStr) {
         throw new SongCodeError(
@@ -61,6 +65,22 @@ export class PatternParser {
           `Invalid pattern format at line ${i + 1}`,
           { line: i + 1 }
         );
+      }
+
+      // If no inline content, look at next line
+      if (!patternContent || patternContent.trim() === '') {
+        // Check next line for pattern content
+        if (i + 1 < lines.length) {
+          const nextLine = lines[i + 1];
+          if (nextLine) {
+            const nextTrimmed = nextLine.trim();
+            // Next line should not be another pattern definition or empty
+            if (nextTrimmed && !nextTrimmed.startsWith('$') && !nextTrimmed.startsWith('@')) {
+              patternContent = nextTrimmed;
+              i++; // Skip the next line since we consumed it
+            }
+          }
+        }
       }
 
       // Validate pattern ID

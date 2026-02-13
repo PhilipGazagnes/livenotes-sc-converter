@@ -54,9 +54,21 @@ export class SectionParser {
     let i = 0;
 
     while (i < lines.length) {
-      // Skip empty lines between sections
-      while (i < lines.length && (!lines[i] || lines[i]!.trim() === '')) {
-        i++;
+      // Skip empty lines and non-section lines (metadata, patterns)
+      while (i < lines.length) {
+        const line = lines[i];
+        if (!line || line.trim() === '') {
+          i++;
+          continue;
+        }
+        const trimmed = line.trim();
+        // Skip metadata and pattern definition lines
+        if (trimmed.startsWith('@') || trimmed.startsWith('$')) {
+          i++;
+          continue;
+        }
+        // Found a potential section start
+        break;
       }
 
       if (i >= lines.length) break;
@@ -65,11 +77,10 @@ export class SectionParser {
       const sectionLines: string[] = [];
       let foundSeparator = false;
 
-      // First line is the section name - validate it doesn't start with special chars
+      // First line is the section name - validate it doesn't start with invalid chars
       const firstLine = lines[i]!;
       const firstTrimmed = firstLine.trim();
-      if (firstTrimmed.startsWith('$') || firstTrimmed.startsWith('@') ||
-          firstTrimmed.startsWith('_') || firstTrimmed.startsWith('--')) {
+      if (firstTrimmed.startsWith('_') || firstTrimmed.startsWith('--')) {
         throw new SongCodeError('E1.4.2', 'Section name cannot be empty', {
           line: i + 1,
         });
@@ -256,12 +267,12 @@ export class SectionParser {
       // Otherwise, it must be the pattern
       if (!pattern) {
         pattern = trimmed;
-        lineIndex++;
-        continue;
+      } else {
+        // Multi-line pattern - concatenate with semicolon
+        pattern += ';' + trimmed;
       }
-
-      // Unknown line before separator
       lineIndex++;
+      continue;
     }
 
     if (!separatorFound) {
