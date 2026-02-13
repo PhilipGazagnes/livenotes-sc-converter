@@ -75,8 +75,8 @@ describe('PatternIdAssigner', () => {
 
       // Assert
       expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern
-      expect(result.sectionPatternIds.get(0)).toBe('A');
-      expect(result.sectionPatternIds.get(1)).toBe('A');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
     });
 
     test('1.5.4: Pattern reference resolution', () => {
@@ -99,7 +99,7 @@ describe('PatternIdAssigner', () => {
           measures: 0,
         },
       });
-      expect(result.sectionPatternIds.get(0)).toBe('A');
+      expect(result.sectionPatternIds.get('Verse')).toBe('A');
     });
 
     test('1.5.5: Pattern normalization match (spacing)', () => {
@@ -116,8 +116,8 @@ describe('PatternIdAssigner', () => {
       // Assert
       expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern (normalized to same)
       expect(result.patterns['A']!.sc).toBe('A;G');
-      expect(result.sectionPatternIds.get(0)).toBe('A');
-      expect(result.sectionPatternIds.get(1)).toBe('A');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
     });
 
     test('1.5.6: Multi-line pattern normalization', () => {
@@ -134,8 +134,8 @@ describe('PatternIdAssigner', () => {
       // Assert
       expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern
       expect(result.patterns['A']!.sc).toBe('A;G;D;E');
-      expect(result.sectionPatternIds.get(0)).toBe('A');
-      expect(result.sectionPatternIds.get(1)).toBe('A');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
     });
 
     test('1.5.7: Empty pattern handling', () => {
@@ -156,7 +156,7 @@ describe('PatternIdAssigner', () => {
           measures: 0,
         },
       });
-      expect(result.sectionPatternIds.get(0)).toBe('A');
+      expect(result.sectionPatternIds.get('Verse')).toBe('A');
     });
 
     test('1.5.8: Maximum pattern IDs (26 patterns)', () => {
@@ -200,9 +200,9 @@ describe('PatternIdAssigner', () => {
       expect(Object.keys(result.patterns)).toEqual(['A', 'B']); // Two patterns
       expect(result.patterns['A']!.sc).toBe('A;G');
       expect(result.patterns['B']!.sc).toBe('D;E');
-      expect(result.sectionPatternIds.get(0)).toBe('A');
-      expect(result.sectionPatternIds.get(1)).toBe('B');
-      expect(result.sectionPatternIds.get(2)).toBe('A'); // Reuses A
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Chorus')).toBe('B');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A'); // Reuses A
     });
 
     test('1.5.10: Inline vs referenced pattern same content', () => {
@@ -220,8 +220,8 @@ describe('PatternIdAssigner', () => {
 
       // Assert
       expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern
-      expect(result.sectionPatternIds.get(0)).toBe('A');
-      expect(result.sectionPatternIds.get(1)).toBe('A');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
     });
   });
 });

@@ -17,7 +17,7 @@ import { PatternsObject } from '../types';
 
 export interface PatternAssignmentResult {
   patterns: PatternsObject;
-  sectionPatternIds: Map<string, string>; // section name -> pattern ID
+  sectionPatternIds: Map<number, string>; // section index -> pattern ID
 }
 
 export class PatternIdAssigner {
@@ -30,12 +30,13 @@ export class PatternIdAssigner {
    */
   assign(patternDefinitions: PatternMap, sections: Section[]): PatternAssignmentResult {
     const patterns: PatternsObject = {};
-    const sectionPatternIds = new Map<string, string>();
+    const sectionPatternIds = new Map<number, string>();
     const normalizedPatternToId = new Map<string, string>();
     
     let nextLetterId = 'A';
 
-    for (const section of sections) {
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i]!; // ! because we know i is within bounds
       // Resolve pattern: either inline or $n reference
       let patternContent = section.pattern;
       
@@ -68,8 +69,8 @@ export class PatternIdAssigner {
         normalizedPatternToId.set(normalized, patternId);
       }
 
-      // Map this section to its pattern ID
-      sectionPatternIds.set(section.name, patternId);
+      // Map this section index to its pattern ID
+      sectionPatternIds.set(i, patternId);
     }
 
     return { patterns, sectionPatternIds };

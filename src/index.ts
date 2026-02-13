@@ -177,10 +177,11 @@ export class SongCodeConverter {
     // Step 3.2: Calculate Section Measure Counts
     // Calculate total measures for each section considering all modifiers
     // and store in section objects for use in Step 3.3
-    const sectionMeasures = new Map<string, number>();
+    const sectionMeasures = new Map<number, number>();
     
-    for (const section of sections) {
-      const patternId = sectionPatternIds.get(section.name);
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i]!;
+      const patternId = sectionPatternIds.get(i);
       const pattern = patternId ? patterns[patternId] : undefined;
       const patternMeasures = pattern?.measures || 0;
       const beforeMeasures = section.before?.measures || 0;
@@ -220,18 +221,19 @@ export class SongCodeConverter {
       finalMeasures += afterMeasures;
       
       // Store calculated measures
-      sectionMeasures.set(section.name, finalMeasures);
+      sectionMeasures.set(i, finalMeasures);
     }
     
     // Step 3.3: Validate Lyric Timing
     // Validate that lyric measure counts match section's calculated measures
-    for (const section of sections) {
+    for (let j = 0; j < sections.length; j++) {
+      const section = sections[j]!;
       // Skip validation for instrumental sections (no lyrics)
       if (section.lyrics.length === 0) {
         continue;
       }
       
-      const totalMeasures = sectionMeasures.get(section.name) || 0;
+      const totalMeasures = sectionMeasures.get(j) || 0;
       this.lyricTimingValidator.validate(section.lyrics, totalMeasures);
     }
 
@@ -239,10 +241,11 @@ export class SongCodeConverter {
     // PHASE 3.5: Lyric Transformation
     // ============================================================
     // Transform lyrics from string[] to LyricObject[]
-    const transformedLyrics = new Map<string, LyricObject[]>();
-    for (const section of sections) {
+    const transformedLyrics = new Map<number, LyricObject[]>();
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i]!;
       const lyrics = this.lyricTransformer.transform(section.lyrics);
-      transformedLyrics.set(section.name, lyrics);
+      transformedLyrics.set(i, lyrics);
     }
 
     // ============================================================
@@ -260,7 +263,8 @@ export class SongCodeConverter {
       );
     }
 
-    for (const section of sections) {
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i]!;
       // Handle BPM override
       if (section.time?.bpm) {
         prompter.push(
@@ -272,7 +276,7 @@ export class SongCodeConverter {
       }
 
       // Get pattern and expand
-      const patternId = sectionPatternIds.get(section.name);
+      const patternId = sectionPatternIds.get(i);
       const pattern = patternId ? patterns[patternId] : undefined;
       
       if (!pattern || !pattern.json) {
@@ -322,10 +326,10 @@ export class SongCodeConverter {
     // ============================================================
     // Build Final LivenotesJSON with transformed sections
     // ============================================================
-    const finalSections: SectionObject[] = sections.map(section => {
-      const patternId = sectionPatternIds.get(section.name);
+    const finalSections: SectionObject[] = sections.map((section, index) => {
+      const patternId = sectionPatternIds.get(index);
       const pattern = patternId ? patterns[patternId] : undefined;
-      const lyrics = transformedLyrics.get(section.name) || [];
+      const lyrics = transformedLyrics.get(index) || [];
       
       // Calculate final measure count after modifiers
       let finalMeasures = pattern?.measures || 0;
