@@ -1,0 +1,227 @@
+/**
+ * Test suite for PatternIdAssigner
+ * 
+ * Test Spec: Section 1.5 (Tests 1.5.1-1.5.10)
+ * See: https://github.com/PhilipGazagnes/livenotes-documentation/blob/main/songcode/test-suite-specification.md
+ */
+
+import { PatternIdAssigner } from '../../../src/phase1_5/PatternIdAssigner';
+import { PatternMap } from '../../../src/phase1/PatternParser';
+import { Section } from '../../../src/phase1/SectionParser';
+
+describe('PatternIdAssigner', () => {
+  let assigner: PatternIdAssigner;
+
+  beforeEach(() => {
+    assigner = new PatternIdAssigner();
+  });
+
+  describe('assign()', () => {
+    test('1.5.1: Single pattern assignment', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [{
+        name: 'Verse',
+        pattern: 'A;G;D;G',
+        lyrics: [],
+      }];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(result.patterns).toEqual({
+        'A': {
+          sc: 'A;G;D;G',
+          json: null,
+          measures: 0,
+        },
+      });
+      expect(result.sectionPatternIds.get('Verse')).toBe('A');
+    });
+
+    test('1.5.2: Multiple unique patterns', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [
+        { name: 'Verse', pattern: 'A;G', lyrics: [] },
+        { name: 'Chorus', pattern: 'D;E', lyrics: [] },
+        { name: 'Bridge', pattern: 'C;F', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(Object.keys(result.patterns)).toEqual(['A', 'B', 'C']);
+      expect(result.patterns['A']!.sc).toBe('A;G');
+      expect(result.patterns['B']!.sc).toBe('D;E');
+      expect(result.patterns['C']!.sc).toBe('C;F');
+      expect(result.sectionPatternIds.get('Verse')).toBe('A');
+      expect(result.sectionPatternIds.get('Chorus')).toBe('B');
+      expect(result.sectionPatternIds.get('Bridge')).toBe('C');
+    });
+
+    test('1.5.3: Reuse same pattern', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [
+        { name: 'Verse1', pattern: 'A;G;D;G', lyrics: [] },
+        { name: 'Verse2', pattern: 'A;G;D;G', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
+    });
+
+    test('1.5.4: Pattern reference resolution', () => {
+      // Arrange
+      const patternDefs: PatternMap = {
+        '1': 'A;G',
+      };
+      const sections: Section[] = [
+        { name: 'Verse', pattern: '$1', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(result.patterns).toEqual({
+        'A': {
+          sc: 'A;G',
+          json: null,
+          measures: 0,
+        },
+      });
+      expect(result.sectionPatternIds.get('Verse')).toBe('A');
+    });
+
+    test('1.5.5: Pattern normalization match (spacing)', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [
+        { name: 'Verse1', pattern: 'A ; G', lyrics: [] },
+        { name: 'Verse2', pattern: 'A;G', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern (normalized to same)
+      expect(result.patterns['A']!.sc).toBe('A;G');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
+    });
+
+    test('1.5.6: Multi-line pattern normalization', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [
+        { name: 'Verse1', pattern: 'A;G\nD;E', lyrics: [] },
+        { name: 'Verse2', pattern: 'A;G;D;E', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern
+      expect(result.patterns['A']!.sc).toBe('A;G;D;E');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
+    });
+
+    test('1.5.7: Empty pattern handling', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [
+        { name: 'Verse', pattern: '', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(result.patterns).toEqual({
+        'A': {
+          sc: '',
+          json: null,
+          measures: 0,
+        },
+      });
+      expect(result.sectionPatternIds.get('Verse')).toBe('A');
+    });
+
+    test('1.5.8: Maximum pattern IDs (26 patterns)', () => {
+      // Arrange
+      const patternDefs: PatternMap = {};
+      const sections: Section[] = [];
+      
+      // Create 26 unique patterns
+      for (let i = 0; i < 26; i++) {
+        sections.push({
+          name: `Section${i}`,
+          pattern: `Chord${i}`,
+          lyrics: [],
+        });
+      }
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      const expectedIds = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      expect(Object.keys(result.patterns)).toEqual(expectedIds);
+    });
+
+    test('1.5.9: Pattern order independence', () => {
+      // Arrange
+      const patternDefs: PatternMap = {
+        '1': 'A;G',
+        '2': 'D;E',
+      };
+      const sections: Section[] = [
+        { name: 'Verse1', pattern: '$1', lyrics: [] },
+        { name: 'Chorus', pattern: '$2', lyrics: [] },
+        { name: 'Verse2', pattern: '$1', lyrics: [] },
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(Object.keys(result.patterns)).toEqual(['A', 'B']); // Two patterns
+      expect(result.patterns['A']!.sc).toBe('A;G');
+      expect(result.patterns['B']!.sc).toBe('D;E');
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Chorus')).toBe('B');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A'); // Reuses A
+    });
+
+    test('1.5.10: Inline vs referenced pattern same content', () => {
+      // Arrange
+      const patternDefs: PatternMap = {
+        '1': 'A;G',
+      };
+      const sections: Section[] = [
+        { name: 'Verse1', pattern: '$1', lyrics: [] },
+        { name: 'Verse2', pattern: 'A;G', lyrics: [] }, // Same content inline
+      ];
+
+      // Act
+      const result = assigner.assign(patternDefs, sections);
+
+      // Assert
+      expect(Object.keys(result.patterns)).toEqual(['A']); // Only one pattern
+      expect(result.sectionPatternIds.get('Verse1')).toBe('A');
+      expect(result.sectionPatternIds.get('Verse2')).toBe('A');
+    });
+  });
+});

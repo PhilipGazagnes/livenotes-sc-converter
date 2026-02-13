@@ -11,10 +11,11 @@ export class PromptItemBuilder {
   /**
    * Build a tempo change item
    */
-  buildTempoItem(bpm: number): PrompterItem {
+  buildTempoItem(bpm: number, timeSignature: [number, number]): PrompterItem {
     return {
       type: 'tempo',
       bpm,
+      time: `${timeSignature[0]}/${timeSignature[1]}`,
     };
   }
 
@@ -25,7 +26,10 @@ export class PromptItemBuilder {
     return {
       type: 'content',
       style: sectionName.toLowerCase(),
-      chords: measures,
+      chords: [{
+        repeats: 1,
+        pattern: measures,
+      }],
       lyrics,
     };
   }

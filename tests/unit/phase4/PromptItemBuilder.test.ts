@@ -12,11 +12,12 @@ describe('PromptItemBuilder', () => {
   describe('buildTempoItem()', () => {
     // Test 4.4.1: Build tempo item
     it('should build tempo change item', () => {
-      const result = builder.buildTempoItem(140);
+      const result = builder.buildTempoItem(140, [4, 4]);
       
       expect(result).toEqual({
         type: 'tempo',
         bpm: 140,
+        time: '4/4',
       });
     });
   });
@@ -33,7 +34,10 @@ describe('PromptItemBuilder', () => {
       expect(result.type).toBe('content');
       if (result.type === 'content') {
         expect(result.style).toBe('verse');
-        expect(result.chords).toEqual([[['A', '']]]);
+        expect(result.chords).toEqual([{
+          repeats: 1,
+          pattern: [[['A', '']]],
+        }]);
         expect(result.lyrics).toBe('First line');
       }
     });

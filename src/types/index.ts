@@ -88,33 +88,41 @@ export type ChordPosition =
 export type Chord = [base: string, extension: string];
 
 /**
- * Section object
+ * Section object in final output
  */
 export interface SectionObject {
   name: string;
-  comment?: string;
+  comment: string | null;
   pattern: PatternReference;
-  lyrics: string[];
+  measures: number;
+  lyrics: LyricObject[];
+}
+
+/**
+ * Lyric object with timing and style
+ */
+export interface LyricObject {
+  text: string;
+  measures: number;
+  style: 'normal' | 'info' | 'musician';
 }
 
 /**
  * Pattern reference with modifiers
  */
 export interface PatternReference {
-  id?: string;
-  sc?: string;
-  json?: PatternJSON | null;
-  measures?: number;
-  repeat?: number;
-  cutStart?: [measures: number, beats: number];
-  cutEnd?: [measures: number, beats: number];
-  before?: PatternModifier;
-  after?: PatternModifier;
-  time?: TimeModifier;
+  id: string | null;
+  repeat: number;
+  bpm: number | null;
+  time: TimeSignature | null;
+  cutStart: [measures: number, beats: number] | null;
+  cutEnd: [measures: number, beats: number] | null;
+  before: PatternModifier | null;
+  after: PatternModifier | null;
 }
 
 /**
- * Pattern modifier (before/after)
+ * Pattern modifier (before/after) in final output
  */
 export interface PatternModifier {
   sc: string;
@@ -123,32 +131,35 @@ export interface PatternModifier {
 }
 
 /**
- * Time modifier (tempo/time signature override)
- */
-export interface TimeModifier {
-  bpm?: number;
-  time?: TimeSignature;
-}
-
-/**
  * Prompter array item
  */
 export type PrompterItem = TempoItem | ContentItem;
 
 /**
- * Tempo change item
+ * Tempo change item in prompter
  */
 export interface TempoItem {
   type: 'tempo';
   bpm: number;
+  time: string; // Format: "4/4"
 }
 
 /**
- * Content item with chords and lyrics
+ * Content item with chords and lyrics in prompter
  */
 export interface ContentItem {
   type: 'content';
   style: string;
-  chords: Measure[];
   lyrics: string;
+  chords: ChordGroup[];
+  isInfo?: boolean;
+  isMusician?: boolean;
+}
+
+/**
+ * Chord group with repeats and pattern
+ */
+export interface ChordGroup {
+  repeats: number;
+  pattern: Measure[];
 }
