@@ -1,6 +1,26 @@
 # SongCode Converter
 
+[![npm version](https://img.shields.io/npm/v/@livenotes/songcode-converter.svg)](https://www.npmjs.com/package/@livenotes/songcode-converter)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-205%20passing-brightgreen.svg)](#)
+[![Coverage](https://img.shields.io/badge/coverage-92.47%25-brightgreen.svg)](#)
+
 Convert SongCode (`.sc`) files to Livenotes JSON format.
+
+> **SongCode** is a human-friendly text format for writing chord charts with lyrics. This package converts SongCode to structured JSON for music applications.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Documentation](#documentation)
+- [Error Handling](#error-handling)
+- [Example](#example)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
@@ -8,7 +28,7 @@ Convert SongCode (`.sc`) files to Livenotes JSON format.
 npm install @livenotes/songcode-converter
 ```
 
-## Usage
+## Quick Start
 
 ```typescript
 import { SongCodeConverter } from '@livenotes/songcode-converter';
@@ -197,21 +217,29 @@ This project follows Test-Driven Development (TDD). Tests are organized by phase
 
 All test cases are defined in the [Test Suite Specification](https://github.com/PhilipGazagnes/livenotes-documentation/blob/main/songcode/test-suite-specification.md).
 
-### Contributing
+## Contributing
 
 Contributions are welcome! Please:
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Write tests for new functionality
 4. Ensure all tests pass (`npm test`)
 5. Ensure code is properly formatted (`npm run format`)
 6. Ensure linting passes (`npm run lint`)
-7. Submit a pull request
+7. Commit your changes (`git commit -m 'Add amazing feature'`)
+8. Push to the branch (`git push origin feature/amazing-feature`)
+9. Open a Pull Request
+
+For major changes, please open an issue first to discuss what you would like to change.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more details (coming soon).
 
 ## License
 
 MIT © Philip Gazagnes
+
+See [LICENSE](LICENSE) file for details.
 
 ## Links
 
@@ -219,3 +247,8 @@ MIT © Philip Gazagnes
 - [Documentation](https://github.com/PhilipGazagnes/livenotes-documentation)
 - [Issues](https://github.com/PhilipGazagnes/livenotes-sc-converter/issues)
 - [NPM Package](https://www.npmjs.com/package/@livenotes/songcode-converter)
+- [Changelog](CHANGELOG.md)
+
+---
+
+**Made with ❤️ for musicians and developers**
