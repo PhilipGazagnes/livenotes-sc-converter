@@ -3,8 +3,30 @@
  * 
  * Error codes correspond to the error catalog in:
  * https://github.com/PhilipGazagnes/livenotes-documentation/blob/main/songcode/parser-generator-specification.md#comprehensive-error-catalog
+ * 
+ * @example
+ * ```typescript
+ * throw new SongCodeError(
+ *   'E1.2.1',
+ *   'Invalid BPM value: must be between 20 and 300',
+ *   { line: 5, context: '@bpm 500' }
+ * );
+ * ```
+ * 
+ * @example Catching errors
+ * ```typescript
+ * try {
+ *   converter.convert(songCode);
+ * } catch (error) {
+ *   if (error instanceof SongCodeError) {
+ *     console.error(`Error ${error.code}: ${error.message}`);
+ *     if (error.line) {
+ *       console.error(`  at line ${error.line}`);
+ *     }
+ *   }
+ * }
+ * ```
  */
-
 export class SongCodeError extends Error {
   /**
    * Error code (e.g., 'E1.1.1', 'E2.1.3')

@@ -36,6 +36,32 @@ import { PromptItemBuilder } from './phase4/PromptItemBuilder';
 
 /**
  * Main converter class that orchestrates all 16 bricks across 6 phases.
+ * 
+ * @example
+ * ```typescript
+ * import { SongCodeConverter } from '@livenotes/songcode-converter';
+ * 
+ * const converter = new SongCodeConverter();
+ * const songCode = `
+ * @bpm 120
+ * @original C
+ * 
+ * $1
+ * C;G;Am;F
+ * 
+ * Verse
+ * $1
+ * --
+ * Amazing grace, how sweet the sound _4
+ * `;
+ * 
+ * try {
+ *   const result = converter.convert(songCode);
+ *   console.log(JSON.stringify(result, null, 2));
+ * } catch (error) {
+ *   console.error('Conversion failed:', error.message);
+ * }
+ * ```
  */
 export class SongCodeConverter {
   // Phase 1: First Pass Parsing
@@ -67,9 +93,24 @@ export class SongCodeConverter {
   /**
    * Convert a SongCode string to Livenotes JSON format.
    * 
-   * @param songCode - The SongCode content as a string
-   * @returns The Livenotes JSON object
+   * Processes the input through 6 phases:
+   * 1. **First Pass Parsing** - Extract metadata, patterns, and sections
+   * 2. **Pattern Organization** - Assign alphabetical IDs to patterns
+   * 3. **Pattern Transformation** - Convert SongCode patterns to JSON arrays
+   * 4. **Validation** - Validate time signatures, measures, and lyrics
+   * 5. **Lyric Transformation** - Transform lyric strings to objects
+   * 6. **Prompter Generation** - Build linearized display format
+   * 
+   * @param songCode - The SongCode content as a string (UTF-8)
+   * @returns The Livenotes JSON object with meta, patterns, sections, and prompter
    * @throws {SongCodeError} If parsing or validation fails
+   * 
+   * @example
+   * ```typescript
+   * const converter = new SongCodeConverter();
+   * const result = converter.convert(songCodeString);
+   * // result: { meta, patterns, sections, prompter }
+   * ```
    */
   convert(songCode: string): LivenotesJSON {
     // ============================================================

@@ -41,6 +41,47 @@ For complete SongCode language documentation, see:
 - [JSON Structure](https://github.com/PhilipGazagnes/livenotes-documentation/blob/main/songcode/livenotes-json-structure-reference.md)
 - [Quick Start Tutorial](https://github.com/PhilipGazagnes/livenotes-documentation/blob/main/songcode/songcode-quick-start-tutorial.md)
 
+## Error Handling
+
+The converter throws `SongCodeError` for all parsing and validation errors. Each error includes:
+- **Error code** (e.g., `E1.2.1`) - Maps to the error catalog in the specification
+- **Message** - Human-readable description
+- **Line number** - Where the error occurred (when applicable)
+- **Context** - Additional context about the error
+
+```typescript
+import { SongCodeConverter, SongCodeError } from '@livenotes/songcode-converter';
+
+const converter = new SongCodeConverter();
+
+try {
+  const result = converter.convert(songCode);
+} catch (error) {
+  if (error instanceof SongCodeError) {
+    console.error(`Error ${error.code}: ${error.message}`);
+    if (error.line) {
+      console.error(`  at line ${error.line}`);
+    }
+    if (error.context) {
+      console.error(`  context: ${error.context}`);
+    }
+  }
+}
+```
+
+### Common Error Codes
+
+- `E1.1.1` - Invalid UTF-8 encoding
+- `E1.2.1` - Invalid BPM value
+- `E1.2.2` - Invalid time signature
+- `E1.3.1` - Invalid pattern definition
+- `E1.4.1` - Invalid section header
+- `E2.1.1` - Invalid chord notation
+- `E3.1.1` - Measure doesn't fit time signature
+- `E3.2.1` - Lyric measure count mismatch
+
+See the [Error Catalog](https://github.com/PhilipGazagnes/livenotes-documentation/blob/main/songcode/parser-generator-specification.md#comprehensive-error-catalog) for a complete list.
+
 ## Example
 
 **Input** (`song.sc`):
