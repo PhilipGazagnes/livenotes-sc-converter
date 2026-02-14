@@ -1,6 +1,7 @@
 # SongCode Converter
 
 [![npm version](https://img.shields.io/npm/v/@livenotes/songcode-converter.svg)](https://www.npmjs.com/package/@livenotes/songcode-converter)
+[![npm downloads](https://img.shields.io/npm/dm/@livenotes/songcode-converter.svg)](https://www.npmjs.com/package/@livenotes/songcode-converter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Tests](https://img.shields.io/badge/tests-205%20passing-brightgreen.svg)](#)
