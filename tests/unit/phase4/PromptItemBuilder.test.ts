@@ -89,7 +89,7 @@ describe('PromptItemBuilder', () => {
     it('should resolve % to previous chord', () => {
       const measures: Measure[] = [
         [['A', '']],
-        [['%']],
+        ['%'],
       ];
       
       const result = builder.resolveRepeatSymbols(measures);
@@ -104,8 +104,8 @@ describe('PromptItemBuilder', () => {
     it('should resolve multiple % symbols to same previous chord', () => {
       const measures: Measure[] = [
         [['A', '']],
-        [['%']],
-        [['%']],
+        ['%'],
+        ['%'],
         [['D', '']],
       ];
       
@@ -121,7 +121,7 @@ describe('PromptItemBuilder', () => {
 
     // Test 4.4.6: % at start with no previous chord (error)
     it('should throw error when % appears at start with no previous chord', () => {
-      const measures: Measure[] = [[['%']]];
+      const measures: Measure[] = [['%']];
       
       expect(() => builder.resolveRepeatSymbols(measures)).toThrow(SongCodeError);
       try {
@@ -137,7 +137,7 @@ describe('PromptItemBuilder', () => {
     it('should handle measure with both chords and % symbol', () => {
       const measures: Measure[] = [
         [['A', ''], ['G', '']],
-        [['%'], ['D', '']],
+        ['%', ['D', '']],
       ];
       
       const result = builder.resolveRepeatSymbols(measures);

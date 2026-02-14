@@ -171,14 +171,15 @@ export class PatternTransformer {
     content = content.trim();
 
     // Check for special single-character measures
+    // These should be single-element arrays, not nested arrays like chords
     if (content === '%') {
-      return { measure: [['%']], endIndex: i };
+      return { measure: ['%'], endIndex: i };
     }
     if (content === '_') {
-      return { measure: [['_']], endIndex: i };
+      return { measure: ['_'], endIndex: i };
     }
     if (content === '-') {
-      return { measure: [['-']], endIndex: i };
+      return { measure: ['-'], endIndex: i };
     }
 
     // Parse chords and removers
@@ -195,13 +196,13 @@ export class PatternTransformer {
         if (!hasChord) {
           throw new SongCodeError('E2.1.2', 'Remover "=" must be at end of measure after chords');
         }
-        measure.push(['=']);
+        measure.push('=');
       } else if (item === '%') {
-        // Repeat symbol in multi-item measure
-        measure.push(['%']);
+        // Repeat symbol in multi-item measure (just the string, not wrapped)
+        measure.push('%');
       } else if (item === '_') {
-        // Silence symbol in multi-item measure
-        measure.push(['_']);
+        // Silence symbol in multi-item measure (just the string, not wrapped)
+        measure.push('_');
       } else {
         // Parse as chord
         const chord = this.chordParser.parse(item);

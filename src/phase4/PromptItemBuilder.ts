@@ -1,4 +1,4 @@
-import { Measure, PrompterItem } from '../types';
+import { Measure, PrompterItem, ChordPosition } from '../types';
 import { SongCodeError } from '../errors/SongCodeError';
 
 /**
@@ -109,12 +109,18 @@ export class PromptItemBuilder {
         const itemA = measureA[j];
         const itemB = measureB[j];
 
-        if (Array.isArray(itemA) && Array.isArray(itemB)) {
-          // Compare arrays (chords or symbols)
+        // Both are strings (special symbols)
+        if (typeof itemA === 'string' && typeof itemB === 'string') {
+          if (itemA !== itemB) return false;
+        }
+        // Both are arrays (chords)
+        else if (Array.isArray(itemA) && Array.isArray(itemB)) {
           if (itemA.length !== itemB.length) return false;
           if (itemA[0] !== itemB[0]) return false;
           if (itemA.length === 2 && itemA[1] !== itemB[1]) return false;
-        } else {
+        }
+        // One is string, one is array - not equal
+        else {
           return false;
         }
       }
@@ -129,36 +135,43 @@ export class PromptItemBuilder {
    */
   resolveRepeatSymbols(measures: Measure[]): Measure[] {
     const resolved: Measure[] = [];
-    let previousChord: Measure | null = null;
+    let previousMeasure: Measure | null = null;
 
     for (const measure of measures) {
       const newMeasure: Measure = [];
+      let previousChordInMeasure: ChordPosition | null = null;
       
       for (const chord of measure) {
         // Check if this is a repeat symbol
-        const isRepeatSymbol = Array.isArray(chord) && chord.length === 1 && chord[0] === '%';
+        const isRepeatSymbol = chord === '%';
         
         if (isRepeatSymbol) {
-          // Repeat last chord/measure
-          if (previousChord === null) {
+          // In a multi-position measure, repeat the previous chord position
+          // In a single-position measure, this shouldn't happen as % is already resolved
+          if (previousChordInMeasure !== null) {
+            // Multi-position: repeat last chord in this measure
+            newMeasure.push(previousChordInMeasure);
+          } else if (previousMeasure !== null && previousMeasure.length > 0) {
+            // Single-position or first position: repeat entire previous measure
+            newMeasure.push(...previousMeasure);
+          } else {
             throw new SongCodeError(
               'E4.1.1',
               'Repeat symbol (%) used with no previous chord to repeat',
               { context: `measure: ${JSON.stringify(measure)}` }
             );
           }
-          // Add all chords from previous measure
-          newMeasure.push(...previousChord);
         } else {
           newMeasure.push(chord);
+          previousChordInMeasure = chord;
         }
       }
       
       resolved.push(newMeasure);
       
-      // Update previous chord if this measure has real chords
+      // Update previous measure
       if (newMeasure.length > 0) {
-        previousChord = newMeasure;
+        previousMeasure = newMeasure;
       }
     }
 

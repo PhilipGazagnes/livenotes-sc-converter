@@ -75,12 +75,17 @@ export type Measure = ChordPosition[];
 
 /**
  * A chord position in a measure
+ * - Chord: ["Am", ""] - base and extension
+ * - Special symbols: "%", "_", "=" - unwrapped strings
+ * 
+ * Note: Single-position measures look like ["%"] or ["_"]
+ * Multi-position measures look like [["Am", ""], "%", ["G", ""]]
  */
 export type ChordPosition = 
   | Chord
-  | ['%']
-  | ['_']
-  | ['='];
+  | '%'
+  | '_'
+  | '=';
 
 /**
  * A chord with base and extension

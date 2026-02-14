@@ -85,7 +85,7 @@ describe('TimeSignatureValidator', () => {
   describe('Removers', () => {
     // Test 3.1.8: Single chord with one remover in 4/4 (valid)
     it('should validate single chord with remover in 4/4 time', () => {
-      const measure: ChordPosition[] = [['A', ''], ['=']];
+      const measure: ChordPosition[] = [['A', ''], '='];
       const timeSignature = { numerator: 4, denominator: 4 };
 
       expect(() => validator.validate(measure, timeSignature)).not.toThrow();
@@ -93,7 +93,7 @@ describe('TimeSignatureValidator', () => {
 
     // Test 3.1.9: Two chords with two removers in 4/4 (valid)
     it('should validate two chords with two removers in 4/4 time', () => {
-      const measure: ChordPosition[] = [['A', ''], ['D', ''], ['='], ['=']];
+      const measure: ChordPosition[] = [['A', ''], ['D', ''], '=', '='];
       const timeSignature = { numerator: 4, denominator: 4 };
 
       expect(() => validator.validate(measure, timeSignature)).not.toThrow();
@@ -101,7 +101,7 @@ describe('TimeSignatureValidator', () => {
 
     // Test 3.1.10: Single chord with three removers in 4/4 (valid - 1 beat remaining)
     it('should validate single chord with three removers in 4/4 time', () => {
-      const measure: ChordPosition[] = [['A', ''], ['='], ['='], ['=']];
+      const measure: ChordPosition[] = [['A', ''], '=', '=', '='];
       const timeSignature = { numerator: 4, denominator: 4 };
 
       expect(() => validator.validate(measure, timeSignature)).not.toThrow();
@@ -109,7 +109,7 @@ describe('TimeSignatureValidator', () => {
 
     // Test 3.1.11: Single chord with two removers removes all 4 beats (invalid)
     it('should reject when removers eliminate all beats', () => {
-      const measure: ChordPosition[] = [['A', ''], ['='], ['=']];
+      const measure: ChordPosition[] = [['A', ''], '=', '='];
       const timeSignature = { numerator: 4, denominator: 4 };
 
       expect(() => validator.validate(measure, timeSignature)).toThrow(SongCodeError);
@@ -126,7 +126,7 @@ describe('TimeSignatureValidator', () => {
   describe('Special symbols', () => {
     // Test 3.1.12: Silence symbol
     it('should validate silence symbol _ as taking all beats', () => {
-      const measure: ChordPosition[] = [['_']];
+      const measure: ChordPosition[] = ['_'];
       const timeSignature = { numerator: 4, denominator: 4 };
 
       expect(() => validator.validate(measure, timeSignature)).not.toThrow();
@@ -134,7 +134,7 @@ describe('TimeSignatureValidator', () => {
 
     // Test 3.1.13: Repeat symbol
     it('should validate repeat symbol % (timing checked after resolution)', () => {
-      const measure: ChordPosition[] = [['%']];
+      const measure: ChordPosition[] = ['%'];
       const timeSignature = { numerator: 4, denominator: 4 };
 
       expect(() => validator.validate(measure, timeSignature)).not.toThrow();
