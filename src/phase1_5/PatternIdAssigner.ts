@@ -119,6 +119,7 @@ export class PatternIdAssigner {
 
     // 3. Join lines with `;` or `:` separator
     // If a line is ":", keep it as-is; otherwise join with ";"
+    // Special handling: don't add `;` before/after `[` or `]`
     const parts: string[] = [];
     for (let i = 0; i < processedLines.length; i++) {
       const line = processedLines[i];
@@ -130,7 +131,15 @@ export class PatternIdAssigner {
           parts.push(':');
         }
       } else {
-        if (parts.length > 0 && parts[parts.length - 1] !== ':') {
+        // Check if we need a separator before this line
+        const needsSeparator = parts.length > 0 && 
+                               parts[parts.length - 1] !== ':' &&
+                               !line.startsWith('[') &&
+                               !line.startsWith(']') &&
+                               !(parts[parts.length - 1] || '').endsWith('[') &&
+                               !(parts[parts.length - 1] || '').endsWith(']');
+        
+        if (needsSeparator) {
           parts.push(';');
         }
         parts.push(line);
