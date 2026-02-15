@@ -34,14 +34,15 @@ export class LyricTransformer {
   private transformLine(lyric: string): LyricObject {
     // Extract measure count (_N marker at end)
     const measureMatch = lyric.match(/_(\d+)$/);
-    if (!measureMatch || !measureMatch[1]) {
-      throw new Error(`Lyric line missing measure count: "${lyric}"`);
-    }
-
-    const measures = parseInt(measureMatch[1], 10);
     
-    // Remove the _N marker from the text
-    let text = lyric.substring(0, lyric.length - measureMatch[0].length).trim();
+    let measures: number | null = null; // Default to null if no timing marker (song without timing)
+    let text = lyric.trim();
+    
+    if (measureMatch && measureMatch[1]) {
+      measures = parseInt(measureMatch[1], 10);
+      // Remove the _N marker from the text
+      text = lyric.substring(0, lyric.length - measureMatch[0].length).trim();
+    }
 
     // Detect style markers
     let style: 'normal' | 'info' | 'musician' = 'normal';

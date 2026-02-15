@@ -108,7 +108,7 @@ export interface SectionObject {
  */
 export interface LyricObject {
   text: string;
-  measures: number;
+  measures: number | null;
   style: 'normal' | 'info' | 'musician';
 }
 

@@ -1,13 +1,55 @@
 import { SongCodeError } from '../errors/SongCodeError';
+import { Section } from '../phase1/SectionParser';
 
 /**
  * Validates that lyric timing markers (_N) are correctly formatted and sum to expected total.
  * 
- * Each lyric line should end with _N where N is the number of measures.
- * Special markers (***info***, :::musician:::) are allowed but still need _N.
+ * Handles two levels of validation:
+ * 1. Global all-or-nothing rule: If any lyric has _N, all lyrics must have _N
+ * 2. Per-section validation: Lyric measure counts must sum to section's total measures
+ * 
+ * Special markers (***info***, :::musician:::) are allowed but still need _N (if used).
  * Empty lines (just _N) are valid for instrumental sections.
  */
 export class LyricTimingValidator {
+  /**
+   * Validates the all-or-nothing rule across all sections.
+   * 
+   * If any lyric line in the entire song has a measure count (_N),
+   * then ALL lyric lines must have measure counts.
+   * 
+   * @param sections - All sections from the song
+   * @returns true if lyrics have timing markers, false if they don't
+   * @throws {SongCodeError} E3.3.1 if some lyrics have counts and some don't
+   */
+  validateAllOrNothing(sections: Section[]): boolean {
+    let lyricsWithCounts = 0;
+    let lyricsWithoutCounts = 0;
+    
+    for (const section of sections) {
+      for (const lyric of section.lyrics) {
+        if (/_\d+$/.test(lyric)) {
+          lyricsWithCounts++;
+        } else {
+          lyricsWithoutCounts++;
+        }
+      }
+    }
+    
+    // E3.3.1: If some lyrics have counts and some don't, that's an error
+    if (lyricsWithCounts > 0 && lyricsWithoutCounts > 0) {
+      throw new SongCodeError(
+        'E3.3.1',
+        'All-or-nothing rule: If any lyric has a measure count, all lyrics must have measure counts',
+        {
+          context: `Found ${lyricsWithCounts} lyrics with counts and ${lyricsWithoutCounts} lyrics without counts`,
+        }
+      );
+    }
+    
+    // Return true if lyrics have timing markers
+    return lyricsWithCounts > 0;
+  }
   /**
    * Validates all lyric lines have proper timing markers and sum to total measures.
    * 

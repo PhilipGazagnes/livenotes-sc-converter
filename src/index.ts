@@ -266,16 +266,23 @@ export class SongCodeConverter {
     }
     
     // Step 3.3: Validate Lyric Timing
-    // Validate that lyric measure counts match section's calculated measures
-    for (let j = 0; j < sections.length; j++) {
-      const section = sections[j]!;
-      // Skip validation for instrumental sections (no lyrics)
-      if (section.lyrics.length === 0) {
-        continue;
+    
+    // Check the all-or-nothing rule globally and determine if timing markers are used
+    const hasTimingMarkers = this.lyricTimingValidator.validateAllOrNothing(sections);
+    
+    // Only validate measure count sums if lyrics have timing markers
+    if (hasTimingMarkers) {
+      // Validate that lyric measure counts match section's calculated measures
+      for (let j = 0; j < sections.length; j++) {
+        const section = sections[j]!;
+        // Skip validation for instrumental sections (no lyrics)
+        if (section.lyrics.length === 0) {
+          continue;
+        }
+        
+        const totalMeasures = sectionMeasures.get(j) || 0;
+        this.lyricTimingValidator.validate(section.lyrics, totalMeasures);
       }
-      
-      const totalMeasures = sectionMeasures.get(j) || 0;
-      this.lyricTimingValidator.validate(section.lyrics, totalMeasures);
     }
 
     // ============================================================
@@ -294,75 +301,116 @@ export class SongCodeConverter {
     // ============================================================
     const prompter: LivenotesJSON['prompter'] = [];
 
-    // Add initial tempo item using preserved global BPM
-    if (globalBpm) {
-      prompter.push(
-        this.promptItemBuilder.buildTempoItem(
-          globalBpm,
-          [timeSignature.numerator, timeSignature.denominator]
-        )
-      );
-    }
-
+    // Step 4.1: Check prompter eligibility
+    // According to spec, all conditions must be met:
+    // 1. All sections must have lyrics
+    // 2. All sections must have non-empty patterns
+    // 3. All lyrics must have measure counts (not null)
+    let isPrompterEligible = true;
+    
     for (let i = 0; i < sections.length; i++) {
-      const section = sections[i]!;
-      // Handle BPM override
-      if (section.time?.bpm) {
+      const lyrics = transformedLyrics.get(i) || [];
+      const patternId = sectionPatternIds.get(i);
+      const pattern = patternId ? patterns[patternId] : undefined;
+      
+      // Check 1: Section must have lyrics
+      if (lyrics.length === 0) {
+        isPrompterEligible = false;
+        break;
+      }
+      
+      // Check 2: Section must have non-empty pattern
+      if (!pattern || !pattern.json || pattern.measures === 0) {
+        isPrompterEligible = false;
+        break;
+      }
+      
+      // Check 3: All lyrics must have measure counts (not null)
+      for (const lyric of lyrics) {
+        if (lyric.measures === null) {
+          isPrompterEligible = false;
+          break;
+        }
+      }
+      
+      if (!isPrompterEligible) {
+        break;
+      }
+    }
+    
+    // Only generate prompter if eligible
+    if (isPrompterEligible) {
+      // Add initial tempo item using preserved global BPM
+      if (globalBpm) {
         prompter.push(
           this.promptItemBuilder.buildTempoItem(
-            section.time.bpm,
+            globalBpm,
             [timeSignature.numerator, timeSignature.denominator]
           )
         );
       }
 
-      // Get pattern and expand
-      const patternId = sectionPatternIds.get(i);
-      const pattern = patternId ? patterns[patternId] : undefined;
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i]!;
+        // Handle BPM override
+        if (section.time?.bpm) {
+          prompter.push(
+            this.promptItemBuilder.buildTempoItem(
+              section.time.bpm,
+              [timeSignature.numerator, timeSignature.denominator]
+            )
+          );
+        }
+
+        // Get pattern and expand
+        const patternId = sectionPatternIds.get(i);
+        const pattern = patternId ? patterns[patternId] : undefined;
       
-      if (!pattern || !pattern.json) {
-        continue; // Skip sections without patterns
+        if (!pattern || !pattern.json) {
+          continue; // Skip sections without patterns
+        }
+
+        let measures = this.patternExpander.expand(pattern.json);
+
+        // Resolve % repeat symbols
+        measures = this.promptItemBuilder.resolveRepeatSymbols(measures);
+
+        // Get before/after patterns if specified
+        const beforeMeasures = section.before?.json
+          ? this.patternExpander.expand(section.before.json)
+          : undefined;
+        const afterMeasures = section.after?.json
+          ? this.patternExpander.expand(section.after.json)
+          : undefined;
+
+        // Apply section modifiers
+        measures = this.measureStacker.stack(measures, section, beforeMeasures, afterMeasures);
+
+        // Skip prompter generation for instrumental sections (no lyrics)
+        if (section.lyrics.length === 0) {
+          continue;
+        }
+
+        // Pair lyrics with measures
+        const lyricPairs = this.lyricPairer.pair(section.lyrics, measures.length);
+
+        // Build prompter items
+        for (const lyricPair of lyricPairs) {
+          const lyricMeasures = measures.slice(0, lyricPair.measures);
+          measures = measures.slice(lyricPair.measures);
+
+          const item = this.promptItemBuilder.buildContentItem(
+            lyricMeasures,
+            lyricPair.text,
+            lyricPair.isInfo,
+            lyricPair.isMusician
+          );
+
+          prompter.push(item);
+        }
       }
-
-      let measures = this.patternExpander.expand(pattern.json);
-
-      // Resolve % repeat symbols
-      measures = this.promptItemBuilder.resolveRepeatSymbols(measures);
-
-      // Get before/after patterns if specified
-      const beforeMeasures = section.before?.json
-        ? this.patternExpander.expand(section.before.json)
-        : undefined;
-      const afterMeasures = section.after?.json
-        ? this.patternExpander.expand(section.after.json)
-        : undefined;
-
-      // Apply section modifiers
-      measures = this.measureStacker.stack(measures, section, beforeMeasures, afterMeasures);
-
-      // Skip prompter generation for instrumental sections (no lyrics)
-      if (section.lyrics.length === 0) {
-        continue;
-      }
-
-      // Pair lyrics with measures
-      const lyricPairs = this.lyricPairer.pair(section.lyrics, measures.length);
-
-      // Build prompter items
-      for (const lyricPair of lyricPairs) {
-        const lyricMeasures = measures.slice(0, lyricPair.measures);
-        measures = measures.slice(lyricPair.measures);
-
-        const item = this.promptItemBuilder.buildContentItem(
-          lyricMeasures,
-          lyricPair.text,
-          lyricPair.isInfo,
-          lyricPair.isMusician
-        );
-
-        prompter.push(item);
-      }
-    }
+    
+    } // End of prompter eligibility check
 
     // ============================================================
     // Build Final LivenotesJSON with transformed sections

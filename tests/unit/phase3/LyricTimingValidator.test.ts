@@ -1,11 +1,104 @@
 import { LyricTimingValidator } from '../../../src/phase3/LyricTimingValidator';
 import { SongCodeError } from '../../../src/errors/SongCodeError';
+import { Section } from '../../../src/phase1/SectionParser';
 
 describe('LyricTimingValidator', () => {
   let validator: LyricTimingValidator;
 
   beforeEach(() => {
     validator = new LyricTimingValidator();
+  });
+
+  describe('validateAllOrNothing', () => {
+    it('should return true when all lyrics have timing markers', () => {
+      const sections: Section[] = [
+        {
+          name: 'Verse',
+          pattern: 'A;G;D',
+          lyrics: ['First line _2', 'Second line _2'],
+        },
+        {
+          name: 'Chorus',
+          pattern: 'C;G',
+          lyrics: ['Chorus line _2'],
+        },
+      ];
+
+      const result = validator.validateAllOrNothing(sections);
+      expect(result).toBe(true);
+    });
+
+    it('should return false when no lyrics have timing markers', () => {
+      const sections: Section[] = [
+        {
+          name: 'Verse',
+          pattern: 'A;G;D',
+          lyrics: ['First line', 'Second line'],
+        },
+        {
+          name: 'Chorus',
+          pattern: 'C;G',
+          lyrics: ['Chorus line'],
+        },
+      ];
+
+      const result = validator.validateAllOrNothing(sections);
+      expect(result).toBe(false);
+    });
+
+    it('should throw E3.3.1 when some lyrics have timing markers and some do not', () => {
+      const sections: Section[] = [
+        {
+          name: 'Verse',
+          pattern: 'A;G;D',
+          lyrics: ['First line _2', 'Second line'],  // Mixed!
+        },
+      ];
+
+      expect(() => validator.validateAllOrNothing(sections)).toThrow(SongCodeError);
+      try {
+        validator.validateAllOrNothing(sections);
+      } catch (error) {
+        expect((error as SongCodeError).code).toBe('E3.3.1');
+        expect((error as SongCodeError).message).toContain('All-or-nothing');
+      }
+    });
+
+    it('should handle sections with no lyrics (instrumental)', () => {
+      const sections: Section[] = [
+        {
+          name: 'Intro',
+          pattern: 'A;G;D',
+          lyrics: [],  // No lyrics
+        },
+        {
+          name: 'Verse',
+          pattern: 'C;G',
+          lyrics: ['First line _2'],
+        },
+      ];
+
+      const result = validator.validateAllOrNothing(sections);
+      expect(result).toBe(true);
+    });
+
+    it('should handle info markers correctly', () => {
+      const sections: Section[] = [
+        {
+          name: 'Intro',
+          pattern: 'A;G;D',
+          lyrics: ['***Intro*** _4'],
+        },
+        {
+          name: 'Verse',
+          pattern: 'C;G',
+          lyrics: ['First line _2'],
+        },
+      ];
+
+      const result = validator.validateAllOrNothing(sections);
+      expect(result).toBe(true);
+    });
   });
 
   describe('Valid lyric timing', () => {
