@@ -254,6 +254,23 @@ Lyrics _4`;
         expect(section.time?.bpm).toBe(140);
       });
 
+      test('1.4.13b: Section with float @bpm override', () => {
+        // Arrange
+        const content = `Bridge
+@bpm 139.5
+$1
+--
+Lyrics _4`;
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        const section = getSection(result, 0);
+        expect(section.time).toBeDefined();
+        expect(section.time?.bpm).toBe(139.5);
+      });
+
       test('1.4.14: Section with @time override', () => {
         // Arrange
         const content = `Waltz

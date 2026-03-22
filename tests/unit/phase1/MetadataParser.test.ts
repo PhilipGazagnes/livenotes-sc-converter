@@ -50,6 +50,17 @@ describe('MetadataParser', () => {
         expect(result.bpm).toBe(120);
       });
 
+      test('1.2.3b: Valid float BPM metadata', () => {
+        // Arrange
+        const content = '@bpm 119.5';
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        expect(result.bpm).toBe(119.5);
+      });
+
       test('1.2.6: BPM zero (edge case)', () => {
         // Arrange
         const content = '@bpm 0';

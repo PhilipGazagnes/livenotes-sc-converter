@@ -235,7 +235,7 @@ export class SectionParser {
       // Parse @bpm override
       if (trimmed.startsWith('@bpm ')) {
         const bpmStr = trimmed.substring(5).trim();
-        time.bpm = parseInt(bpmStr, 10);
+        time.bpm = parseFloat(bpmStr);
         lineIndex++;
         continue;
       }

@@ -184,7 +184,7 @@ export class MetadataParser {
    * Parse and validate BPM
    */
   private parseBPM(value: string, line: number): number {
-    const bpm = parseInt(value, 10);
+    const bpm = parseFloat(value);
 
     if (isNaN(bpm)) {
       throw new SongCodeError('E1.1.2', 'BPM must be a number', { line });
