@@ -4,7 +4,7 @@ import * as path from 'path';
 
 describe('Documentation Examples', () => {
   let converter: SongCodeConverter;
-  const docsPath = '/Users/a1234/Documents/www/livenotes-documentation/songcode/convertion-examples';
+  const docsPath = path.join(__dirname, '../../../livenotes-documentation/songcode/convertion-examples');
 
   beforeEach(() => {
     converter = new SongCodeConverter();

@@ -10,7 +10,7 @@ import { SongCodeConverter } from '../../src/index';
 
 describe('SongCodeConverter - Integration Tests', () => {
   let converter: SongCodeConverter;
-  const examplesPath = '/Users/a1234/Documents/www/livenotes-documentation/songcode/convertion-examples';
+  const examplesPath = path.join(__dirname, '../../../livenotes-documentation/songcode/convertion-examples');
 
   beforeEach(() => {
     converter = new SongCodeConverter();

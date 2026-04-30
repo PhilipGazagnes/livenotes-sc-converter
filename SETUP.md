@@ -87,7 +87,7 @@ livenotes-sc-converter/
 
 ### 1. Install Dependencies
 ```bash
-cd /Users/a1234/Documents/www/livenotes-sc-converter
+cd livenotes-sc-converter
 npm install
 ```
 
