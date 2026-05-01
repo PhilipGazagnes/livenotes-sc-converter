@@ -238,21 +238,17 @@ export class SongCodeConverter {
       }
       
       // Apply _cutStart modifier
+      // beats only shortens the boundary measure's duration — it doesn't remove the measure
       if (section.cutStart) {
-        const [measures, beats] = section.cutStart;
+        const [measures] = section.cutStart;
         finalMeasures -= measures;
-        if (beats > 0) {
-          finalMeasures -= 1;
-        }
       }
-      
+
       // Apply _cutEnd modifier
+      // beats only shortens the boundary measure's duration — it doesn't remove the measure
       if (section.cutEnd) {
-        const [measures, beats] = section.cutEnd;
+        const [measures] = section.cutEnd;
         finalMeasures -= measures;
-        if (beats > 0) {
-          finalMeasures -= 1;
-        }
       }
       
       // Add _before measures
@@ -266,23 +262,14 @@ export class SongCodeConverter {
     }
     
     // Step 3.3: Validate Lyric Timing
-    
-    // Check the all-or-nothing rule globally and determine if timing markers are used
-    const hasTimingMarkers = this.lyricTimingValidator.validateAllOrNothing(sections);
-    
-    // Only validate measure count sums if lyrics have timing markers
-    if (hasTimingMarkers) {
-      // Validate that lyric measure counts match section's calculated measures
-      for (let j = 0; j < sections.length; j++) {
-        const section = sections[j]!;
-        // Skip validation for instrumental sections (no lyrics)
-        if (section.lyrics.length === 0) {
-          continue;
-        }
-        
-        const totalMeasures = sectionMeasures.get(j) || 0;
-        this.lyricTimingValidator.validate(section.lyrics, totalMeasures);
-      }
+    // Measure counts are optional. Sum validation only runs when every lyric
+    // line in a section has a count; otherwise the section is skipped silently.
+    for (let j = 0; j < sections.length; j++) {
+      const section = sections[j]!;
+      if (section.lyrics.length === 0) continue;
+
+      const totalMeasures = sectionMeasures.get(j) || 0;
+      this.lyricTimingValidator.validate(section.lyrics, totalMeasures);
     }
 
     // ============================================================
@@ -426,14 +413,12 @@ export class SongCodeConverter {
         finalMeasures *= section.repeat;
       }
       if (section.cutStart) {
-        const [measures, beats] = section.cutStart;
+        const [measures] = section.cutStart;
         finalMeasures -= measures;
-        if (beats > 0) finalMeasures -= 1;
       }
       if (section.cutEnd) {
-        const [measures, beats] = section.cutEnd;
+        const [measures] = section.cutEnd;
         finalMeasures -= measures;
-        if (beats > 0) finalMeasures -= 1;
       }
       
       // Add before/after measures

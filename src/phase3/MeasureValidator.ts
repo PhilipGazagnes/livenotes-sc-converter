@@ -35,24 +35,16 @@ export class MeasureValidator {
       finalMeasures *= section.repeat;
     }
     
-    // Apply _cutStart modifier (subtract measures + beats)
+    // Apply _cutStart modifier — beats only shortens the boundary measure, doesn't remove it
     if (section.cutStart) {
-      const [measures, beats] = section.cutStart;
+      const [measures] = section.cutStart;
       finalMeasures -= measures;
-      // If beats > 0, that represents a partial measure cut, so subtract 1 more
-      if (beats > 0) {
-        finalMeasures -= 1;
-      }
     }
-    
-    // Apply _cutEnd modifier (subtract measures + beats)
+
+    // Apply _cutEnd modifier — beats only shortens the boundary measure, doesn't remove it
     if (section.cutEnd) {
-      const [measures, beats] = section.cutEnd;
+      const [measures] = section.cutEnd;
       finalMeasures -= measures;
-      // If beats > 0, that represents a partial measure cut, so subtract 1 more
-      if (beats > 0) {
-        finalMeasures -= 1;
-      }
     }
     
     // Add _before measures

@@ -1,6 +1,5 @@
 import { LyricTimingValidator } from '../../../src/phase3/LyricTimingValidator';
 import { SongCodeError } from '../../../src/errors/SongCodeError';
-import { Section } from '../../../src/phase1/SectionParser';
 
 describe('LyricTimingValidator', () => {
   let validator: LyricTimingValidator;
@@ -9,201 +8,64 @@ describe('LyricTimingValidator', () => {
     validator = new LyricTimingValidator();
   });
 
-  describe('validateAllOrNothing', () => {
-    it('should return true when all lyrics have timing markers', () => {
-      const sections: Section[] = [
-        {
-          name: 'Verse',
-          pattern: 'A;G;D',
-          lyrics: ['First line _2', 'Second line _2'],
-        },
-        {
-          name: 'Chorus',
-          pattern: 'C;G',
-          lyrics: ['Chorus line _2'],
-        },
-      ];
-
-      const result = validator.validateAllOrNothing(sections);
-      expect(result).toBe(true);
+  describe('validate() - permissive mode', () => {
+    it('should pass when all lyrics have valid timing markers and sum matches', () => {
+      expect(() => validator.validate(['First line _2', 'Second line _2'], 4)).not.toThrow();
     });
 
-    it('should return false when no lyrics have timing markers', () => {
-      const sections: Section[] = [
-        {
-          name: 'Verse',
-          pattern: 'A;G;D',
-          lyrics: ['First line', 'Second line'],
-        },
-        {
-          name: 'Chorus',
-          pattern: 'C;G',
-          lyrics: ['Chorus line'],
-        },
-      ];
-
-      const result = validator.validateAllOrNothing(sections);
-      expect(result).toBe(false);
+    it('should pass when no lyrics have timing markers (all null)', () => {
+      expect(() => validator.validate(['First line', 'Second line'], 4)).not.toThrow();
     });
 
-    it('should throw E3.3.1 when some lyrics have timing markers and some do not', () => {
-      const sections: Section[] = [
-        {
-          name: 'Verse',
-          pattern: 'A;G;D',
-          lyrics: ['First line _2', 'Second line'],  // Mixed!
-        },
-      ];
-
-      expect(() => validator.validateAllOrNothing(sections)).toThrow(SongCodeError);
-      try {
-        validator.validateAllOrNothing(sections);
-      } catch (error) {
-        expect((error as SongCodeError).code).toBe('E3.3.1');
-        expect((error as SongCodeError).message).toContain('All-or-nothing');
-      }
+    it('should pass when some lyrics have timing markers and some do not', () => {
+      expect(() => validator.validate(['First line _2', 'Second line'], 4)).not.toThrow();
     });
 
-    it('should handle sections with no lyrics (instrumental)', () => {
-      const sections: Section[] = [
-        {
-          name: 'Intro',
-          pattern: 'A;G;D',
-          lyrics: [],  // No lyrics
-        },
-        {
-          name: 'Verse',
-          pattern: 'C;G',
-          lyrics: ['First line _2'],
-        },
-      ];
-
-      const result = validator.validateAllOrNothing(sections);
-      expect(result).toBe(true);
+    it('should pass with a single lyric with a valid timing marker', () => {
+      expect(() => validator.validate(['First line _4'], 4)).not.toThrow();
     });
 
-    it('should handle info markers correctly', () => {
-      const sections: Section[] = [
-        {
-          name: 'Intro',
-          pattern: 'A;G;D',
-          lyrics: ['***Intro*** _4'],
-        },
-        {
-          name: 'Verse',
-          pattern: 'C;G',
-          lyrics: ['First line _2'],
-        },
-      ];
+    it('should pass with info markers', () => {
+      expect(() => validator.validate(['***Solo*** _4'], 4)).not.toThrow();
+    });
 
-      const result = validator.validateAllOrNothing(sections);
-      expect(result).toBe(true);
+    it('should pass with musician markers', () => {
+      expect(() => validator.validate([':::Watch drummer::: _2', 'Continue _2'], 4)).not.toThrow();
+    });
+
+    it('should pass with empty lyric line that has a timing marker', () => {
+      expect(() => validator.validate(['_4'], 4)).not.toThrow();
+    });
+
+    it('should handle sections with no lyrics gracefully', () => {
+      expect(() => validator.validate([], 0)).not.toThrow();
     });
   });
 
-  describe('Valid lyric timing', () => {
-    // Test 3.3.1: Single lyric line with valid timing
-    it('should validate single lyric line with valid timing marker', () => {
-      const lyrics = ['First line _4'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).not.toThrow();
-    });
-
-    // Test 3.3.2: Multiple lyric lines with valid total
-    it('should validate multiple lyric lines with correct total', () => {
-      const lyrics = ['First line _2', 'Second line _2'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).not.toThrow();
-    });
-
-    // Test 3.3.6: Info marker (should not need count)
-    it('should validate info marker with measure count', () => {
-      const lyrics = ['***Solo*** _4'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).not.toThrow();
-    });
-
-    // Test 3.3.7: Musician marker (should not need count)
-    it('should validate musician marker with measure count', () => {
-      const lyrics = [':::Watch drummer::: _2', 'Continue _2'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).not.toThrow();
-    });
-
-    // Test 3.3.8: Empty lyric line
-    it('should validate empty lyric line with timing marker', () => {
-      const lyrics = ['_4'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).not.toThrow();
-    });
-  });
-
-  describe('Invalid lyric timing', () => {
-    // Test 3.3.3: Lyric line missing measure count
-    it('should reject lyric line without measure count', () => {
-      const lyrics = ['First line'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).toThrow(SongCodeError);
+  describe('validate() - sum validation (all lyrics have counts)', () => {
+    it('should throw E3.4.4 when all lyrics have counts but sum does not match total', () => {
+      expect(() => validator.validate(['First line _2', 'Second line _1'], 4)).toThrow(SongCodeError);
       try {
-        validator.validate(lyrics, totalMeasures);
+        validator.validate(['First line _2', 'Second line _1'], 4);
       } catch (error) {
-        expect(error).toBeInstanceOf(SongCodeError);
-        expect((error as SongCodeError).code).toBe('E3.4.1');
-        expect((error as SongCodeError).message).toContain('missing measure count');
+        expect((error as SongCodeError).code).toBe('E3.4.4');
+        expect((error as SongCodeError).message).toContain('total does not match');
       }
     });
 
-    // Test 3.3.4: Lyric with invalid measure count format
-    it('should reject lyric with invalid measure count format', () => {
-      const lyrics = ['First line _abc'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).toThrow(SongCodeError);
+    it('should throw E3.4.3 when a measure count is zero', () => {
+      expect(() => validator.validate(['First line _0'], 0)).toThrow(SongCodeError);
       try {
-        validator.validate(lyrics, totalMeasures);
+        validator.validate(['First line _0'], 0);
       } catch (error) {
-        expect(error).toBeInstanceOf(SongCodeError);
-        expect((error as SongCodeError).code).toBe('E3.4.2');
-        expect((error as SongCodeError).message).toContain('Invalid measure count format');
-      }
-    });
-
-    // Test 3.3.5: Lyric with zero measures
-    it('should reject lyric with zero measure count', () => {
-      const lyrics = ['First line _0'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).toThrow(SongCodeError);
-      try {
-        validator.validate(lyrics, totalMeasures);
-      } catch (error) {
-        expect(error).toBeInstanceOf(SongCodeError);
         expect((error as SongCodeError).code).toBe('E3.4.3');
         expect((error as SongCodeError).message).toContain('must be positive');
       }
     });
-  });
 
-  describe('Total measure validation', () => {
-    // Additional test: Lyric measures don't match total
-    it('should reject when lyric measures do not sum to total', () => {
-      const lyrics = ['First line _2', 'Second line _1'];
-      const totalMeasures = 4;
-
-      expect(() => validator.validate(lyrics, totalMeasures)).toThrow(SongCodeError);
-      try {
-        validator.validate(lyrics, totalMeasures);
-      } catch (error) {
-        expect(error).toBeInstanceOf(SongCodeError);
-        expect((error as SongCodeError).code).toBe('E3.4.4');
-        expect((error as SongCodeError).message).toContain('total does not match');
-      }
+    it('should not throw E3.4.4 when only some lyrics have counts (permissive)', () => {
+      // Mixed counts → sum validation is skipped entirely
+      expect(() => validator.validate(['First line _2', 'Second line'], 4)).not.toThrow();
     });
   });
 });

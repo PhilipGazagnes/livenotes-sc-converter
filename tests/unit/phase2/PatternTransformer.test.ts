@@ -263,6 +263,17 @@ describe('PatternTransformer', () => {
         }
       });
 
+      test('2.2.15b: Silence followed by remover is valid', () => {
+        // Arrange — _ = means "silence this beat and clear the pattern indicator"
+        const input = '_ =';
+
+        // Act
+        const result = transformer.transform(input);
+
+        // Assert
+        expect(result.json).toEqual([['_', '=']]);
+      });
+
       test('2.2.16: Remover not at end of measure', () => {
         // Arrange
         const input = '= A';

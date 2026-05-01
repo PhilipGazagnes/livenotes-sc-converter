@@ -73,11 +73,11 @@ describe('MeasureValidator', () => {
       const section: Section = {
         name: 'Bridge',
         pattern: '$1',
-        lyrics: ['Line 1 _3'],
-        cutStart: [1, 2], // Remove 1 measure + 2-beat measure
+        lyrics: ['Line 1 _4'],
+        cutStart: [1, 2], // Remove 1 full measure; the 2 beats shorten the boundary measure but don't remove it
       };
-      const patternMeasures = 5; // 4+2+4+4+4 beats = 5 measures
-      const lyricMeasures = 3;
+      const patternMeasures = 5;
+      const lyricMeasures = 4; // 5 - 1 = 4 (beats don't reduce the measure count)
 
       expect(() => validator.validate(section, patternMeasures, lyricMeasures)).not.toThrow();
     });

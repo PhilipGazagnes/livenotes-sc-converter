@@ -409,6 +409,139 @@ $1`;
         expect(result[0]!.pattern).toBe('$1');
         expect(result[0]!.lyrics).toEqual([]);
       });
+
+      test('1.4.21: Multiple consecutive sections without -- separator', () => {
+        // Arrange - full song with no lyrics in any section
+        const content = `Intro
+$1
+
+Solo
+$2
+
+Outro
+$3`;
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        expect(result).toHaveLength(3);
+        expect(result[0]!.name).toBe('Intro');
+        expect(result[0]!.pattern).toBe('$1');
+        expect(result[0]!.lyrics).toEqual([]);
+        expect(result[1]!.name).toBe('Solo');
+        expect(result[1]!.pattern).toBe('$2');
+        expect(result[1]!.lyrics).toEqual([]);
+        expect(result[2]!.name).toBe('Outro');
+        expect(result[2]!.pattern).toBe('$3');
+        expect(result[2]!.lyrics).toEqual([]);
+      });
+
+      test('1.4.22: Section with multi-line pattern (loop) and no -- separator', () => {
+        // Arrange - instrumental section whose pattern spans multiple lines
+        const content = `Solo
+[
+A;G
+]3
+
+Couplet
+$1
+--
+Lyrics _4`;
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        expect(result).toHaveLength(2);
+        expect(result[0]!.name).toBe('Solo');
+        expect(result[0]!.pattern).toBe('[;A;G;]3');
+        expect(result[0]!.lyrics).toEqual([]);
+        expect(result[1]!.name).toBe('Couplet');
+        expect(result[1]!.pattern).toBe('$1');
+        expect(result[1]!.lyrics).toEqual(['Lyrics _4']);
+      });
+
+      test('1.4.24: Label-only section (name only, no pattern, no --)', () => {
+        // Arrange — structural placeholder with no chords and no lyrics
+        const content = `Instru!Theme x 2
+
+Couplet
+$1
+--
+Lyrics _4`;
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        expect(result).toHaveLength(2);
+        expect(result[0]!.name).toBe('Instru');
+        expect(result[0]!.comment).toBe('Theme x 2');
+        expect(result[0]!.pattern).toBe('');
+        expect(result[0]!.lyrics).toEqual([]);
+        expect(result[1]!.name).toBe('Couplet');
+      });
+
+      test('1.4.25: Multiple label-only sections mixed with normal sections', () => {
+        // Arrange
+        const content = `Intro!Label only
+
+Verse
+$1
+--
+Lyrics _4
+
+Bridge!Another label
+
+Chorus
+$2
+--
+More lyrics _4`;
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        expect(result).toHaveLength(4);
+        expect(result[0]!.name).toBe('Intro');
+        expect(result[0]!.pattern).toBe('');
+        expect(result[0]!.lyrics).toEqual([]);
+        expect(result[1]!.name).toBe('Verse');
+        expect(result[2]!.name).toBe('Bridge');
+        expect(result[2]!.pattern).toBe('');
+        expect(result[3]!.name).toBe('Chorus');
+      });
+
+      test('1.4.23: Mixed sections with and without -- separator', () => {
+        // Arrange
+        const content = `Intro
+$1
+
+Verse
+$2
+--
+First line _2
+Second line _2
+
+Chorus
+$3
+--
+Chorus lyrics _4`;
+
+        // Act
+        const result = parser.parse(content);
+
+        // Assert
+        expect(result).toHaveLength(3);
+        expect(result[0]!.name).toBe('Intro');
+        expect(result[0]!.pattern).toBe('$1');
+        expect(result[0]!.lyrics).toEqual([]);
+        expect(result[1]!.name).toBe('Verse');
+        expect(result[1]!.lyrics).toEqual(['First line _2', 'Second line _2']);
+        expect(result[2]!.name).toBe('Chorus');
+        expect(result[2]!.lyrics).toEqual(['Chorus lyrics _4']);
+      });
     });
   });
 });

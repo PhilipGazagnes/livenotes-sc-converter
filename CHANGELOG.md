@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-04-30
+
+### Fixed
+
+- **PatternParser**: empty pattern definitions (`$1` with no content) are now valid and stored as `""`.
+
+- **SectionParser**: label-only sections (a section name with no pattern and no `--`) are now valid structural placeholders. Previously the parser threw `E1.4.1`. The section is stored with `pattern: ""` and `lyrics: []`, and behaves identically to a section with an empty pattern definition. Previously the parser threw `E1.2.2`. This matches the spec, which explicitly allows empty patterns as song-skeleton placeholders. Downstream phases already handled `""` correctly (`json: null`, `measures: 0`).
+
+- **SectionParser**: sections without a `--` separator (instrumental, no lyrics) now correctly end at the first empty line. Previously, the parser kept consuming the following section's content into the current section's pattern, causing `PatternTransformer` to fail with an invalid chord error on the next section's name or pattern reference.
+
+### Tests
+
+- Added tests 1.4.21–1.4.23 covering: multiple consecutive sections without `--`, multi-line loop patterns without `--`, and mixed sections (some with, some without `--`).
+
+---
+
 ## [1.0.0] - 2026-02-14
 
 ### Initial Release 🎉

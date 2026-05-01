@@ -166,21 +166,15 @@ $1 Am | F`;
         }
       });
 
-      test('1.3.11: Pattern with no content', () => {
+      test('1.3.11: Pattern with no content is valid (song skeleton)', () => {
         // Arrange
         const content = '$1';
 
-        // Act & Assert
-        expect(() => parser.parse(content)).toThrow(SongCodeError);
-        
-        try {
-          parser.parse(content);
-          fail('Should have thrown SongCodeError');
-        } catch (error) {
-          expect(error).toBeInstanceOf(SongCodeError);
-          expect((error as SongCodeError).code).toBe('E1.2.2');
-          expect((error as SongCodeError).message.toLowerCase()).toContain('empty');
-        }
+        // Act
+        const result = parser.parse(content);
+
+        // Assert — empty patterns are valid placeholders
+        expect(result['1']).toBe('');
       });
     });
   });

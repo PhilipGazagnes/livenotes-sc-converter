@@ -185,16 +185,16 @@ export class PatternTransformer {
     // Parse chords and removers
     const items = content.split(/\s+/).filter(s => s !== '');
     const measure: Array<[string, string] | [string] | string> = [];
-    let hasChord = false;
+    let hasContent = false;
 
     for (let j = 0; j < items.length; j++) {
       const item = items[j];
       if (!item) continue;
 
       if (item === '=') {
-        // Remover must come after at least one chord
-        if (!hasChord) {
-          throw new SongCodeError('E2.1.2', 'Remover "=" must be at end of measure after chords');
+        // Remover must come after at least one chord or silence
+        if (!hasContent) {
+          throw new SongCodeError('E2.1.2', 'Remover "=" must be at end of measure after chords or silence');
         }
         measure.push('=');
       } else if (item === '%') {
@@ -203,11 +203,12 @@ export class PatternTransformer {
       } else if (item === '_') {
         // Silence symbol in multi-item measure (just the string, not wrapped)
         measure.push('_');
+        hasContent = true;
       } else {
         // Parse as chord
         const chord = this.chordParser.parse(item);
         measure.push(chord);
-        hasChord = true;
+        hasContent = true;
       }
     }
 

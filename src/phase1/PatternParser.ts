@@ -108,17 +108,8 @@ export class PatternParser {
       // Validate pattern ID
       const id = this.validatePatternId(idStr, i + 1);
 
-      // Validate pattern content
-      if (!patternContent || patternContent.trim() === '') {
-        throw new SongCodeError(
-          'E1.2.2',
-          `Pattern $${id} is empty at line ${i + 1}`,
-          { line: i + 1 }
-        );
-      }
-
-      // Normalize pattern content (whitespace around pipes)
-      const normalized = this.normalizePattern(patternContent);
+      // Normalize pattern content (empty string is valid — song skeleton)
+      const normalized = patternContent ? this.normalizePattern(patternContent) : '';
 
       patterns[id] = normalized;
     }

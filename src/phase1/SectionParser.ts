@@ -149,6 +149,11 @@ export class SectionParser {
           break;
         }
 
+        // A blank line ends a section that has no lyrics (no -- seen yet)
+        if (!foundSeparator && trimmed === '') {
+          break;
+        }
+
         sectionLines.push(line);
         i++;
       }
@@ -308,13 +313,8 @@ export class SectionParser {
     const lyrics: string[] = [];
     
     if (!separatorFound) {
-      // No lyrics, empty array (will be handled as instrumental)
-      // Pattern should be set by now
-      if (!pattern) {
-        throw new SongCodeError('E1.4.1', 'Section must have a pattern', {
-          line: lineIndex,
-        });
-      }
+      // No lyrics, empty array (instrumental or label-only section)
+      // Pattern may be empty — valid as a structural placeholder
     } else {
       // Parse lyrics (everything after --)
       while (lineIndex < lines.length) {
